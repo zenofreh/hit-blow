@@ -250,6 +250,7 @@
     <p id="credit">Created by zeno</p>
     <div id="game-container">
         <h1>Color Hit & Blow</h1>
+        <select id="difficulty-select"></select>
         <div id="color-buttons"></div>
         <p>現在の推測: <span id="current-guess"></span></p>
         <div id="button-container">
@@ -274,9 +275,12 @@
     <script>
         // 新しい定数を追加
         const DIFFICULTY_LEVELS = {
-            EASY: { codeLength: 4, numColors: 6, maxGuesses: 12 },
-            NORMAL: { codeLength: 4, numColors: 6, maxGuesses: 10 },
-            HARD: { codeLength: 5, numColors: 8, maxGuesses: 8 }
+            EASY: { codeLength: 4, numColors: 6, maxGuesses: 12, uniqueColors: false },
+            NORMAL: { codeLength: 4, numColors: 6, maxGuesses: 10, uniqueColors: false },
+            HARD: { codeLength: 5, numColors: 8, maxGuesses: 8, uniqueColors: false },
+            UNIQUE_EASY: { codeLength: 4, numColors: 6, maxGuesses: 12, uniqueColors: true },
+            UNIQUE_NORMAL: { codeLength: 4, numColors: 6, maxGuesses: 10, uniqueColors: true },
+            UNIQUE_HARD: { codeLength: 5, numColors: 8, maxGuesses: 8, uniqueColors: true }
         };
 
         let currentGameDifficulty = DIFFICULTY_LEVELS.NORMAL; // デフォルト
@@ -294,11 +298,13 @@
 
         // HTMLで難易度を選択するドロップダウンリストを追加
         function setupDifficultySelection() {
-            const select = document.createElement("select");
+            const select = document.getElementById('difficulty-select');
             for (const level in DIFFICULTY_LEVELS) {
                 const option = document.createElement("option");
                 option.value = level;
-                option.textContent = level;
+                const levelName = level.replace('UNIQUE_', '').charAt(0).toUpperCase() + level.replace('UNIQUE_', '').slice(1);
+                const uniqueText = level.includes('UNIQUE_') ? ' (被りなし)' : ' (被りあり)';
+                option.textContent = levelName + uniqueText;
                 select.appendChild(option);
             }
 
@@ -308,7 +314,7 @@
             });
 
             // 適切な場所にドロップダウンリストを追加
-            document.getElementById("game-container").prepend(select); // 先頭に追加する例
+            // document.getElementById("game-container").prepend(select); // 先頭に追加する例
         }
 
         function resetGame() {
@@ -361,8 +367,19 @@
         // 秘密のコードを生成
         function generateSecretCode() {
             let code = [];
-            for (let i = 0; i < CODE_LENGTH; i++) {
-                code.push(COLORS[Math.floor(Math.random() * NUM_COLORS)]);
+            if (currentGameDifficulty.uniqueColors) {
+                // 難易度設定が UNIQUE の場合、同じ色が重複しないように生成
+                let availableColors = [...COLORS];
+                for (let i = 0; i < CODE_LENGTH; i++) {
+                    const randomIndex = Math.floor(Math.random() * availableColors.length);
+                    code.push(availableColors[randomIndex]);
+                    availableColors.splice(randomIndex, 1);
+                }
+            } else {
+                // 既存のコード生成ロジック（色の重複を許可）
+                for (let i = 0; i < CODE_LENGTH; i++) {
+                    code.push(COLORS[Math.floor(Math.random() * NUM_COLORS)]);
+                }
             }
             return code;
         }
