@@ -110,7 +110,14 @@
         hgroup,
         menu,
         nav,
-        section {
+        output,
+        ruby,
+        section,
+        summary,
+        time,
+        mark,
+        audio,
+        video {
             display: block;
         }
 
@@ -194,6 +201,24 @@
             /* 最大幅を少し広げる */
             text-align: center;
             /* 中央揃え */
+            opacity: 0;
+            /* フェードインアニメーションの初期状態 */
+            animation: fadeIn 0.5s forwards;
+            /* フェードインアニメーションの適用 */
+        }
+
+        /* フェードインアニメーションの定義 */
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         #difficulty-select {
@@ -329,6 +354,36 @@
             /* 目立つ色 */
         }
 
+        /* ゲーム結果のフェードインアニメーション */
+
+        .result-fade-in {
+            animation: resultFadeIn 1s forwards;
+        }
+
+        @keyframes resultFadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* トランジションの追加 */
+
+        #guess-history-table tr {
+            transition: background-color 0.3s ease;
+        }
+
+        #guess-history-table tr:nth-child(odd) {
+            background-color: #f9f9f9;
+        }
+
+        #guess-history-table tr:hover {
+            background-color: #eaeaea;
+        }
+
         @media (max-width: 600px) {
             #game-container {
                 width: 95%;
@@ -392,6 +447,8 @@
             <tbody id="guess-history-body"></tbody>
         </table>
         <p id="result"></p>
+
+
     </div>
 
     <script>
@@ -448,6 +505,7 @@
         let gameHistory = [];
         let gameOver = false;
         let guessCount = 0;
+
 
 
         // HTMLで難易度を選択するドロップダウンリストを追加
@@ -580,6 +638,7 @@
         function displayGuessResult(guess, hit, blow) {
             const guessHistoryBody = document.getElementById('guess-history-body');
             const row = document.createElement('tr');
+            row.classList.add('new-guess'); // アニメーション用のクラスを追加
 
             const guessCell = document.createElement('td');
             guess.forEach(color => {
@@ -607,6 +666,11 @@
             row.appendChild(blowCell);
 
             guessHistoryBody.appendChild(row);
+
+            // アニメーション開始
+            setTimeout(() => {
+                row.classList.remove('new-guess');
+            }, 10); // わずかな遅延でアニメーションを有効化
         }
 
         // ゲームを開始
@@ -619,6 +683,7 @@
             guessCount = 0;
             document.getElementById('guess-history-body').innerHTML = '';
             document.getElementById('result').textContent = `ゲーム開始！色を選んでください。（残り${MAX_GUESSES}回）`;
+            document.getElementById('result').classList.remove('result-fade-in'); // 以前のクラスを削除
             updateCurrentGuessDisplay();
             console.log(`Secret code: ${secretCode}`);
             document.getElementById('undo-button').disabled = false;
@@ -658,6 +723,7 @@
                     blow: result.blow
                 });
 
+
                 if (result.hit === CODE_LENGTH) {
                     document.getElementById('result').textContent = 'おめでとうございます！正解です！';
                     gameOver = true;
@@ -665,13 +731,20 @@
                     document.getElementById('guess-button').disabled = true;
                     disableColorButtons();
                 } else if (guessCount >= MAX_GUESSES) {
-                    document.getElementById('result').textContent = `ゲームオーバー！正解は ${secretCode.join(', ')} でした。`;
                     gameOver = true;
                     document.getElementById('undo-button').disabled = true;
                     document.getElementById('guess-button').disabled = true;
                     disableColorButtons();
-                }
 
+                    // 正解の色を表示
+                    let resultText = `ゲームオーバー！正解は: `;
+                    secretCode.forEach(color => {
+                        resultText += `<span class="color-box" style="background-color: ${color};"></span>`;
+                    });
+                    document.getElementById('result').innerHTML = resultText;
+                    document.getElementById('result').classList.add('result-fade-in');
+
+                }
                 // 結果に関わらず、推測後に currentGuess をクリア
                 currentGuess = [];
                 updateCurrentGuessDisplay();
@@ -682,7 +755,9 @@
                 }
 
             } else {
-                alert('4色を選択してください。');
+                // 難易度によって必要な色数を変える
+                const requiredColors = currentGameDifficulty.codeLength;
+                alert(`${requiredColors}つの色を選択してください。`);
             }
         });
 
