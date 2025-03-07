@@ -6,6 +6,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+        integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
         /* CSS Reset (meyerweb.comより) */
 
@@ -123,6 +126,48 @@
 
         body {
             line-height: 1;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        body.dark-mode {
+            background-color: #333;
+            color: #eee;
+        }
+
+        body.dark-mode #game-container {
+            background-color: #444;
+            box-shadow: 0 4px 8px rgba(255, 255, 255, 0.1);
+        }
+
+        body.dark-mode h1,
+        body.dark-mode h2 {
+            color: #fff;
+        }
+
+        body.dark-mode #guess-history-table th,
+        body.dark-mode #guess-history-table td {
+            border-color: #666;
+            /* ダークモード時のボーダー色 */
+        }
+
+        body.dark-mode #guess-history-table th {
+            background-color: #555;
+            color: #fff;
+        }
+
+        body.dark-mode #guess-history-table tr {
+            background-color: #444;
+            color: #fff;
+        }
+
+        body.dark-mode #guess-history-table tr:nth-child(odd) {
+            background-color: #555;
+            color: #fff;
+        }
+
+        body.dark-mode #guess-history-table tr:hover {
+            background-color: #666;
+            color: #fff;
         }
 
         ol,
@@ -205,6 +250,8 @@
             /* フェードインアニメーションの初期状態 */
             animation: fadeIn 0.5s forwards;
             /* フェードインアニメーションの適用 */
+            position: relative;
+            /* settings icon */
         }
 
         /* フェードインアニメーションの定義 */
@@ -270,7 +317,7 @@
             margin-bottom: 20px;
         }
 
-        .color-box {
+        .ui-color-box {
             width: 25px;
             height: 25px;
             display: inline-block;
@@ -282,7 +329,7 @@
             /* スムーズな遷移 */
         }
 
-        .color-box:hover {
+        .ui-color-box:hover {
             background-color: rgba(0, 0, 0, 0.2);
             /* ホバー時の微妙な効果 */
         }
@@ -338,7 +385,7 @@
             font-weight: 600;
         }
 
-        .hit-blow-icon {
+        .ui-hit-blow-icon {
             width: 18px;
             height: 18px;
             display: inline-block;
@@ -384,6 +431,70 @@
             background-color: #eaeaea;
         }
 
+        .js-new-guess {
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: opacity 0.3s ease-out, transform 0.3s ease-out, background-color 0.3s ease;
+            /* アニメーションの調整 */
+            background-color: rgba(255, 255, 0, 0.2);
+        }
+
+        .js-new-guess.show {
+            opacity: 1;
+            transform: translateY(0);
+            background-color: transparent;
+        }
+
+        #settings-icon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 1.5em;
+            cursor: pointer;
+            color: #7f8c8d;
+            transition: color 0.3s ease;
+        }
+
+        #settings-icon:hover {
+            color: #34495e;
+        }
+
+        #settings-menu {
+            position: absolute;
+            top: 40px;
+            /* settings icon height */
+            right: 10px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            width: 200px;
+            text-align: left;
+            z-index: 10;
+            display: none;
+        }
+
+        #settings-menu.show {
+            display: block;
+        }
+
+        #settings-menu label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        #settings-menu select,
+        #settings-menu button {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #bdc3c7;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            font-size: 1em;
+            cursor: pointer;
+        }
+
         @media (max-width: 600px) {
             #game-container {
                 width: 95%;
@@ -426,14 +537,24 @@
 <body>
     <p id="credit">Created by zeno</p>
     <div id="game-container">
+        <i id="settings-icon" class="fas fa-cog" aria-label="設定"></i>
+        <div id="settings-menu">
+            <label for="color-palette-select">色の種類:</label>
+            <select id="color-palette-select">
+                <option value="default">デフォルト</option>
+                <option value="pastel">パステル</option>
+                <option value="vibrant">ビビッド</option>
+            </select>
+            <button id="toggle-dark-mode">ダークモード/ライトモード</button>
+        </div>
         <h1>Color Hit & Blow</h1>
         <select id="difficulty-select"></select>
         <div id="color-buttons"></div>
         <p>現在の推測: <span id="current-guess"></span></p>
         <div id="button-container">
-            <button id="guess-button">推測</button>
-            <button id="undo-button">取り消し</button>
-            <button id="reset-button">リセット</button>
+            <button id="guess-button" aria-label="推測">推測</button>
+            <button id="undo-button" aria-label="取り消し">取り消し</button>
+            <button id="reset-button" aria-label="リセット">リセット</button>
         </div>
         <h2>推測履歴</h2>
         <table id="guess-history-table">
@@ -494,8 +615,13 @@
         };
 
         let currentGameDifficulty = DIFFICULTY_LEVELS.NORMAL; // デフォルト
-        let COLORS = ["red", "blue", "green", "yellow", "purple", "orange", "pink", "brown"]; // 使用可能な色の配列
-        let NUM_COLORS = COLORS.length;
+        let COLORS = {
+            default: ["red", "blue", "green", "yellow", "purple", "orange", "pink", "brown"],
+            pastel: ["#F08080", "#ADD8E6", "#90EE90", "#FFFFE0", "#E6E6FA", "#FFA07A", "#FFB6C1", "#D2B48C"],
+            vibrant: ["#FF0000", "#0000FF", "#00FF00", "#FFFF00", "#800080", "#FFA500", "#FF69B4", "#A52A2A"]
+        };
+        let currentColorPalette = "default";
+        let NUM_COLORS = COLORS[currentColorPalette].length;
         let CODE_LENGTH = 4;
         let MAX_GUESSES = 10;
 
@@ -506,6 +632,30 @@
         let gameOver = false;
         let guessCount = 0;
 
+        // ダークモードの切り替え
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+        }
+
+
+        // 設定アイコンのクリックイベント
+        document.getElementById('settings-icon').addEventListener('click', () => {
+            const settingsMenu = document.getElementById('settings-menu');
+            settingsMenu.classList.toggle('show');
+        });
+
+        // ダークモード/ライトモード切り替えボタン
+        document.getElementById('toggle-dark-mode').addEventListener('click', () => {
+            toggleDarkMode();
+        });
+
+        // 色の種類を変更
+        document.getElementById('color-palette-select').addEventListener('change', (event) => {
+            currentColorPalette = event.target.value;
+            availableColors = setupColors(currentGameDifficulty.numColors);
+            NUM_COLORS = availableColors.length;
+            resetGame(); // ゲームをリセット
+        });
 
 
         // HTMLで難易度を選択するドロップダウンリストを追加
@@ -541,8 +691,7 @@
         }
 
         function setupColors(numColors) {
-            const allColors = ["red", "blue", "green", "yellow", "purple", "orange", "pink", "brown"];
-            return allColors.slice(0, numColors);
+            return COLORS[currentColorPalette].slice(0, numColors);
         }
 
 
@@ -574,7 +723,7 @@
             display.innerHTML = '';
             currentGuess.forEach(color => {
                 const colorBox = document.createElement('div');
-                colorBox.classList.add('color-box');
+                colorBox.classList.add('ui-color-box');
                 colorBox.style.backgroundColor = color;
                 display.appendChild(colorBox);
             });
@@ -638,38 +787,45 @@
         function displayGuessResult(guess, hit, blow) {
             const guessHistoryBody = document.getElementById('guess-history-body');
             const row = document.createElement('tr');
-            row.classList.add('new-guess'); // アニメーション用のクラスを追加
+            row.classList.add('js-new-guess');
 
             const guessCell = document.createElement('td');
             guess.forEach(color => {
                 const colorBox = document.createElement('div');
-                colorBox.classList.add('color-box');
+                colorBox.classList.add('ui-color-box');
                 colorBox.style.backgroundColor = color;
                 guessCell.appendChild(colorBox);
             });
             row.appendChild(guessCell);
 
             const hitCell = document.createElement('td');
+            hitCell.setAttribute('aria-label', `ヒット: ${hit}個`); // アクセシビリティ対応
             for (let i = 0; i < hit; i++) {
                 const hitIcon = document.createElement('span');
                 hitIcon.textContent = '●';
+                hitIcon.setAttribute('aria-hidden', 'true'); // スクリーンリーダーで読み上げない
                 hitCell.appendChild(hitIcon);
             }
+            hitCell.appendChild(document.createTextNode(` (${hit})`)); // テキストで個数を表示
             row.appendChild(hitCell);
 
             const blowCell = document.createElement('td');
+            blowCell.setAttribute('aria-label', `ブロー: ${blow}個`); // アクセシビリティ対応
             for (let i = 0; i < blow; i++) {
                 const blowIcon = document.createElement('span');
                 blowIcon.textContent = '○';
+                blowIcon.setAttribute('aria-hidden', 'true'); // スクリーンリーダーで読み上げない
                 blowCell.appendChild(blowIcon);
             }
+            blowCell.appendChild(document.createTextNode(` (${blow})`)); // テキストで個数を表示
             row.appendChild(blowCell);
 
             guessHistoryBody.appendChild(row);
 
             // アニメーション開始
             setTimeout(() => {
-                row.classList.remove('new-guess');
+                row.classList.add('show');
+                row.classList.remove('js-new-guess');
             }, 10); // わずかな遅延でアニメーションを有効化
         }
 
@@ -737,11 +893,16 @@
                     disableColorButtons();
 
                     // 正解の色を表示
-                    let resultText = `ゲームオーバー！正解は: `;
+                    let resultText = document.createElement('p');
+                    resultText.textContent = 'ゲームオーバー！正解は: ';
                     secretCode.forEach(color => {
-                        resultText += `<span class="color-box" style="background-color: ${color};"></span>`;
+                        const colorBox = document.createElement('span');
+                        colorBox.classList.add('ui-color-box');
+                        colorBox.style.backgroundColor = color;
+                        resultText.appendChild(colorBox);
                     });
-                    document.getElementById('result').innerHTML = resultText;
+                    document.getElementById('result').innerHTML = ''; // Clear previous content
+                    document.getElementById('result').appendChild(resultText);
                     document.getElementById('result').classList.add('result-fade-in');
 
                 }
@@ -780,6 +941,7 @@
 
         // 起動時に呼び出し
         setupDifficultySelection();
+        availableColors = setupColors(currentGameDifficulty.numColors);
         resetGame(); // ゲームの初期化と起動を resetGame にまとめる
         updateColorButtons();
     </script>
