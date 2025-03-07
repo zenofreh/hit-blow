@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Color Hit & Blow (JavaScript Only)</title>
     <meta charset="UTF-8">
@@ -7,19 +8,88 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         /* CSS Reset (meyerweb.comより) */
-        html, body, div, span, applet, object, iframe,
-        h1, h2, h3, h4, h5, h6, p, blockquote, pre,
-        a, abbr, acronym, address, big, cite, code,
-        del, dfn, em, img, ins, kbd, q, s, samp,
-        small, strike, strong, sub, sup, tt, var,
-        b, u, i, center,
-        dl, dt, dd, ol, ul, li,
-        fieldset, form, label, legend,
-        table, caption, tbody, tfoot, thead, tr, th, td,
-        article, aside, canvas, details, embed,
-        figure, figcaption, footer, header, hgroup,
-        menu, nav, output, ruby, section, summary,
-        time, mark, audio, video {
+
+        html,
+        body,
+        div,
+        span,
+        applet,
+        object,
+        iframe,
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6,
+        p,
+        blockquote,
+        pre,
+        a,
+        abbr,
+        acronym,
+        address,
+        big,
+        cite,
+        code,
+        del,
+        dfn,
+        em,
+        img,
+        ins,
+        kbd,
+        q,
+        s,
+        samp,
+        small,
+        strike,
+        strong,
+        sub,
+        sup,
+        tt,
+        var,
+        b,
+        u,
+        i,
+        center,
+        dl,
+        dt,
+        dd,
+        ol,
+        ul,
+        li,
+        fieldset,
+        form,
+        label,
+        legend,
+        table,
+        caption,
+        tbody,
+        tfoot,
+        thead,
+        tr,
+        th,
+        td,
+        article,
+        aside,
+        canvas,
+        details,
+        embed,
+        figure,
+        figcaption,
+        footer,
+        header,
+        hgroup,
+        menu,
+        nav,
+        output,
+        ruby,
+        section,
+        summary,
+        time,
+        mark,
+        audio,
+        video {
             margin: 0;
             padding: 0;
             border: 0;
@@ -27,35 +97,59 @@
             font: inherit;
             vertical-align: baseline;
         }
+
         /* HTML5 display-role reset for older browsers */
-        article, aside, details, figcaption, figure,
-        footer, header, hgroup, menu, nav, section {
+
+        article,
+        aside,
+        details,
+        figcaption,
+        figure,
+        footer,
+        header,
+        hgroup,
+        menu,
+        nav,
+        section {
             display: block;
         }
+
         body {
             line-height: 1;
         }
-        ol, ul {
+
+        ol,
+        ul {
             list-style: none;
         }
-        blockquote, q {
+
+        blockquote,
+        q {
             quotes: none;
         }
-        blockquote:before, blockquote:after,
-        q:before, q:after {
+
+        blockquote:before,
+        blockquote:after,
+        q:before,
+        q:after {
             content: '';
             content: none;
         }
+
         table {
             border-collapse: collapse;
             border-spacing: 0;
         }
 
         /* 基本スタイル */
+
         body {
-            font-family: 'Roboto', sans-serif; /* モダンなフォント */
-            background-color: #ecf0f1; /* 明るい背景色 */
-            color: #34495e; /* ダークなテキストカラー */
+            font-family: 'Roboto', sans-serif;
+            /* モダンなフォント */
+            background-color: #ecf0f1;
+            /* 明るい背景色 */
+            color: #34495e;
+            /* ダークなテキストカラー */
             margin: 0;
             padding: 0;
             display: flex;
@@ -64,7 +158,8 @@
             min-height: 100vh;
         }
 
-        h1, h2 {
+        h1,
+        h2 {
             font-weight: 700;
             color: #2c3e50;
         }
@@ -89,12 +184,27 @@
 
         #game-container {
             background-color: #fff;
-            border-radius: 15px; /* より丸みを帯びた角 */
+            border-radius: 15px;
+            /* より丸みを帯びた角 */
             padding: 30px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 控えめなシャドウ */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            /* 控えめなシャドウ */
             width: 90%;
-            max-width: 700px; /* 最大幅を少し広げる */
-            text-align: center; /* 中央揃え */
+            max-width: 700px;
+            /* 最大幅を少し広げる */
+            text-align: center;
+            /* 中央揃え */
+        }
+
+        #difficulty-select {
+            margin-bottom: 20px;
+            padding: 10px 15px;
+            border: 1px solid #bdc3c7;
+            border-radius: 8px;
+            font-size: 1em;
+            color: #34495e;
+            background-color: #fff;
+            cursor: pointer;
         }
 
         #color-buttons {
@@ -109,20 +219,25 @@
             height: 50px;
             margin: 8px;
             border: none;
-            border-radius: 50%; /* 円形にする */
+            border-radius: 50%;
+            /* 円形にする */
             cursor: pointer;
-            transition: transform 0.2s ease-in-out; /* ホバー時のアニメーション */
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* 控えめなシャドウ */
+            transition: transform 0.2s ease-in-out;
+            /* ホバー時のアニメーション */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            /* 控えめなシャドウ */
         }
 
         #color-buttons button:hover {
-            transform: scale(1.1); /* 少し拡大 */
+            transform: scale(1.1);
+            /* 少し拡大 */
         }
 
         #color-buttons button:disabled {
             opacity: 0.6;
             cursor: not-allowed;
-            transform: none; /* ホバー効果を無効化 */
+            transform: none;
+            /* ホバー効果を無効化 */
         }
 
         #current-guess {
@@ -136,12 +251,15 @@
             display: inline-block;
             margin-right: 8px;
             border-radius: 5px;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); /* 控えめなシャドウ */
-            transition: background-color 0.3s ease; /* スムーズな遷移 */
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            /* 控えめなシャドウ */
+            transition: background-color 0.3s ease;
+            /* スムーズな遷移 */
         }
 
         .color-box:hover {
-            background-color: rgba(0, 0, 0, 0.2); /* ホバー時の微妙な効果 */
+            background-color: rgba(0, 0, 0, 0.2);
+            /* ホバー時の微妙な効果 */
         }
 
         #button-container {
@@ -154,7 +272,8 @@
             margin: 0 15px;
             border: none;
             border-radius: 8px;
-            background-color: #3498db; /* 新しい色 */
+            background-color: #3498db;
+            /* 新しい色 */
             color: white;
             cursor: pointer;
             font-size: 1em;
@@ -164,7 +283,8 @@
         }
 
         #button-container button:hover {
-            background-color: #2980b9; /* ホバー時の色 */
+            background-color: #2980b9;
+            /* ホバー時の色 */
             transform: scale(1.05);
         }
 
@@ -205,7 +325,8 @@
             text-align: center;
             font-weight: 600;
             font-size: 1.2em;
-            color: #e74c3c; /* 目立つ色 */
+            color: #e74c3c;
+            /* 目立つ色 */
         }
 
         @media (max-width: 600px) {
@@ -236,6 +357,7 @@
         }
 
         /* さらに小さい画面向け */
+
         @media (max-width: 400px) {
             #color-buttons button {
                 width: 35px;
@@ -243,9 +365,9 @@
                 margin: 4px;
             }
         }
-
     </style>
 </head>
+
 <body>
     <p id="credit">Created by zeno</p>
     <div id="game-container">
@@ -274,21 +396,53 @@
 
     <script>
         // 新しい定数を追加
+
         const DIFFICULTY_LEVELS = {
-            EASY: { codeLength: 4, numColors: 6, maxGuesses: 12, uniqueColors: false },
-            NORMAL: { codeLength: 4, numColors: 6, maxGuesses: 10, uniqueColors: false },
-            HARD: { codeLength: 5, numColors: 8, maxGuesses: 8, uniqueColors: false },
-            UNIQUE_EASY: { codeLength: 4, numColors: 6, maxGuesses: 12, uniqueColors: true },
-            UNIQUE_NORMAL: { codeLength: 4, numColors: 6, maxGuesses: 10, uniqueColors: true },
-            UNIQUE_HARD: { codeLength: 5, numColors: 8, maxGuesses: 8, uniqueColors: true }
+            EASY: {
+                codeLength: 4,
+                numColors: 6,
+                maxGuesses: 12,
+                uniqueColors: false
+            },
+            NORMAL: {
+                codeLength: 4,
+                numColors: 6,
+                maxGuesses: 10,
+                uniqueColors: false
+            },
+            HARD: {
+                codeLength: 5,
+                numColors: 8,
+                maxGuesses: 8,
+                uniqueColors: false
+            },
+            UNIQUE_EASY: {
+                codeLength: 4,
+                numColors: 6,
+                maxGuesses: 12,
+                uniqueColors: true
+            },
+            UNIQUE_NORMAL: {
+                codeLength: 4,
+                numColors: 6,
+                maxGuesses: 10,
+                uniqueColors: true
+            },
+            UNIQUE_HARD: {
+                codeLength: 5,
+                numColors: 8,
+                maxGuesses: 8,
+                uniqueColors: true
+            }
         };
 
         let currentGameDifficulty = DIFFICULTY_LEVELS.NORMAL; // デフォルト
-        let COLORS = ["red", "blue", "green", "yellow", "purple", "orange"]; // COLORS の定義を移動
+        let COLORS = ["red", "blue", "green", "yellow", "purple", "orange", "pink", "brown"]; // 使用可能な色の配列
         let NUM_COLORS = COLORS.length;
         let CODE_LENGTH = 4;
         let MAX_GUESSES = 10;
 
+        let availableColors = []; // この変数は動的に変化する
         let secretCode;
         let currentGuess = [];
         let gameHistory = [];
@@ -297,6 +451,7 @@
 
 
         // HTMLで難易度を選択するドロップダウンリストを追加
+
         function setupDifficultySelection() {
             const select = document.getElementById('difficulty-select');
             for (const level in DIFFICULTY_LEVELS) {
@@ -310,7 +465,7 @@
 
             select.addEventListener("change", (event) => {
                 currentGameDifficulty = DIFFICULTY_LEVELS[event.target.value];
-                resetGame(); //難易度を変更した場合、ゲームを再開
+                resetGame(); // 難易度を変更した場合、ゲームを再開
             });
 
             // 適切な場所にドロップダウンリストを追加
@@ -318,12 +473,13 @@
         }
 
         function resetGame() {
-            //以前のゲームをリセットするために startGame() のすべてのステップを実行
-            COLORS = setupColors(currentGameDifficulty.numColors); //使用される色数を変更
-            NUM_COLORS = COLORS.length;
+            // 以前のゲームをリセットするために startGame() のすべてのステップを実行
+            availableColors = setupColors(currentGameDifficulty.numColors); // 使用される色数を変更
+            NUM_COLORS = availableColors.length;
             CODE_LENGTH = currentGameDifficulty.codeLength;
             MAX_GUESSES = currentGameDifficulty.maxGuesses;
-            startGame(); //ゲームを再開
+            startGame(); // ゲームを再開
+            updateColorButtons();
         }
 
         function setupColors(numColors) {
@@ -333,11 +489,12 @@
 
 
         // 色ボタンの作成
+
         const colorButtons = document.getElementById('color-buttons');
 
         function updateColorButtons() {
             colorButtons.innerHTML = ''; // Clear existing buttons
-            COLORS.forEach(color => {
+            availableColors.forEach(color => {
                 const button = document.createElement('button');
                 button.style.backgroundColor = color;
                 button.addEventListener('click', () => {
@@ -353,6 +510,7 @@
 
 
         // 現在の推測を表示
+
         function updateCurrentGuessDisplay() {
             const display = document.getElementById('current-guess');
             display.innerHTML = '';
@@ -365,26 +523,28 @@
         }
 
         // 秘密のコードを生成
+
         function generateSecretCode() {
             let code = [];
             if (currentGameDifficulty.uniqueColors) {
                 // 難易度設定が UNIQUE の場合、同じ色が重複しないように生成
-                let availableColors = [...COLORS];
+                let tempAvailableColors = [...availableColors];
                 for (let i = 0; i < CODE_LENGTH; i++) {
-                    const randomIndex = Math.floor(Math.random() * availableColors.length);
-                    code.push(availableColors[randomIndex]);
-                    availableColors.splice(randomIndex, 1);
+                    const randomIndex = Math.floor(Math.random() * tempAvailableColors.length);
+                    code.push(tempAvailableColors[randomIndex]);
+                    tempAvailableColors.splice(randomIndex, 1);
                 }
             } else {
                 // 既存のコード生成ロジック（色の重複を許可）
                 for (let i = 0; i < CODE_LENGTH; i++) {
-                    code.push(COLORS[Math.floor(Math.random() * NUM_COLORS)]);
+                    code.push(availableColors[Math.floor(Math.random() * NUM_COLORS)]);
                 }
             }
             return code;
         }
 
         // 推測をチェック
+
         function checkGuess(guess) {
             let hit = 0;
             let blow = 0;
@@ -409,10 +569,14 @@
                 }
             }
 
-            return { hit: hit, blow: blow };
+            return {
+                hit: hit,
+                blow: blow
+            };
         }
 
         // 推測結果を表示
+
         function displayGuessResult(guess, hit, blow) {
             const guessHistoryBody = document.getElementById('guess-history-body');
             const row = document.createElement('tr');
@@ -446,6 +610,7 @@
         }
 
         // ゲームを開始
+
         function startGame() {
             secretCode = generateSecretCode();
             currentGuess = [];
@@ -462,6 +627,7 @@
         }
 
         // 色ボタンの状態を更新
+
         function updateColorButtonState() {
             const buttons = document.querySelectorAll('#color-buttons button');
             buttons.forEach(button => {
@@ -470,6 +636,7 @@
         }
 
         // 色ボタンを無効化
+
         function disableColorButtons() {
             const buttons = document.querySelectorAll('#color-buttons button');
             buttons.forEach(button => {
@@ -478,13 +645,18 @@
         }
 
         // 推測ボタン
+
         const guessButton = document.getElementById('guess-button');
         guessButton.addEventListener('click', () => {
             if (currentGuess.length === CODE_LENGTH && !gameOver) {
                 guessCount++;
                 const result = checkGuess(currentGuess);
                 displayGuessResult(currentGuess, result.hit, result.blow);
-                gameHistory.push({ guess: currentGuess, hit: result.hit, blow: result.blow });
+                gameHistory.push({
+                    guess: currentGuess,
+                    hit: result.hit,
+                    blow: result.blow
+                });
 
                 if (result.hit === CODE_LENGTH) {
                     document.getElementById('result').textContent = 'おめでとうございます！正解です！';
@@ -504,7 +676,7 @@
                 currentGuess = [];
                 updateCurrentGuessDisplay();
 
-                //ゲームが終わっていない場合のみ、残り回数を表示
+                // ゲームが終わっていない場合のみ、残り回数を表示
                 if (!gameOver) {
                     document.getElementById('result').textContent = `残り${MAX_GUESSES - guessCount}回`;
                 }
@@ -515,6 +687,7 @@
         });
 
         // 取り消しボタン
+
         const undoButton = document.getElementById('undo-button');
         undoButton.addEventListener('click', () => {
             if (currentGuess.length > 0 && !gameOver) {
@@ -524,6 +697,7 @@
         });
 
         // リセットボタン
+
         const resetButton = document.getElementById('reset-button');
         resetButton.addEventListener('click', () => {
             startGame();
@@ -531,10 +705,9 @@
 
         // 起動時に呼び出し
         setupDifficultySelection();
-        updateColorButtons(); // 初期のボタンを作成
-
-        // ゲーム開始
-        startGame();
+        resetGame(); // ゲームの初期化と起動を resetGame にまとめる
+        updateColorButtons();
     </script>
 </body>
+
 </html>
