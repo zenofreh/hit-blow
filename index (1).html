@@ -1000,11 +1000,11 @@
                 const hintButton = document.getElementById('hint-button');
         const hintDisplay = document.getElementById('hint');
 
-        // ヒントボタンがクリックされたときの処理
-        hintButton.addEventListener('click', () => {
+          // ヒントボタンがクリックされたときの処理
+          hintButton.addEventListener('click', () => {
             if (hintCount < maxHintCount) {
-                const hint = generateHint();
-                hintDisplay.textContent = hint; // ヒントを表示
+                const hintText = generateHint(); // ヒントのテキスト部分だけを取得
+                hintDisplay.innerHTML = hintText;  // ヒントを表示
                 hintCount++; // 使用回数を増やす
                 // 最大回数を超えたらボタンを無効化
                 if (hintCount >= maxHintCount) {
@@ -1016,12 +1016,14 @@
             }
         });
 
-        // ヒントを生成する関数
-        function generateHint() {
+       // ヒントを生成する関数
+       function generateHint() {
             // ヒントの生成ロジック（例：少なくとも一つの色は正しい位置にある）
             const randomIndex = Math.floor(Math.random() * CODE_LENGTH); // ランダムな位置を選択
             const color = secretCode[randomIndex]; // 選択された位置の色を取得
-            return `少なくとも、${randomIndex + 1}番目の位置には ${color} が入っています。`; // ヒントのメッセージを生成
+            // 色のボックスを表示するためのHTMLを作成
+            const colorBox = `<div class="ui-color-box" style="background-color: ${color};"></div>`;
+            return `少なくとも、${randomIndex + 1}番目の位置には ${colorBox} が入っています。`; // ヒントのメッセージを生成
         }
 
         // 起動時に呼び出し
