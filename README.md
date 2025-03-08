@@ -1,6 +1,5 @@
 # 🌈 Color Hit & Blow - 直感と論理で彩る、記憶と思考のパズル 🧠
 
-[![GitHub スター](https://img.shields.io/github/stars/zenofreh?style=social)](https://github.com/zenofreh/hit-blow)
 [![GitHub フォーク](https://img.shields.io/github/forks/zenofreh?style=social)](https://github.com/zenofreh/hit-blow)
 [![GitHub ライセンス](https://img.shields.io/github/license/zenofreh/hit-blow)](https://github.com/zenofreh/hit-blow/blob/main/LICENSE)
 [![GitHub 貢献者](https://img.shields.io/github/contributors/zenofreh/hit-blow)](https://github.com/zenofreh/hit-blow/graphs/contributors)
