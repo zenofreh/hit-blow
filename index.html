@@ -264,8 +264,6 @@
             }
         }
 
-        
-
         #color-buttons {
             display: flex;
             flex-wrap: wrap;
@@ -299,26 +297,34 @@
             /* ホバー効果を無効化 */
         }
 
-        #current-guess {
+        #current-guess-container {
             margin-top: 15px;
             margin-bottom: 20px;
+        }
+
+        #current-guess {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* 中央揃え */
         }
 
         .ui-color-box {
             width: 25px;
             height: 25px;
             display: inline-block;
-            margin-right: 8px;
+            margin: 0 8px;
             border-radius: 5px;
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
             /* 控えめなシャドウ */
             transition: background-color 0.3s ease;
             /* スムーズな遷移 */
+            cursor: grab;
+            /* ドラッグ可能カーソル */
         }
 
-        .ui-color-box:hover {
-            background-color: rgba(0, 0, 0, 0.2);
-            /* ホバー時の微妙な効果 */
+        .ui-color-box:active {
+            cursor: grabbing;
         }
 
         #button-container {
@@ -569,6 +575,26 @@
             font-size: 0.9em;
             color: #7f8c8d;
         }
+
+        /* アラートメッセージのスタイル */
+        #alert-message {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #e74c3c;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease, top 0.3s ease;
+        }
+
+        #alert-message.show {
+            opacity: 1;
+            top: 50px;
+        }
     </style>
 </head>
 
@@ -589,7 +615,11 @@
         </div>
         <h1>Color Hit & Blow</h1>
         <div id="color-buttons"></div>
-        <p>現在の推測: <span id="current-guess"></span></p>
+        <div id="current-guess-container">
+            <p>現在の推測:</p>
+            <div id="current-guess"></div>
+        </div>
+
         <div id="button-container">
             <button id="guess-button" aria-label="推測">推測</button>
             <button id="undo-button" aria-label="取り消し">取り消し</button>
@@ -611,6 +641,10 @@
         </table>
         <div id="result"></div>
     </div>
+
+    <!-- アラートメッセージ用要素 -->
+    <div id="alert-message"></div>
+
     <script>
         // 新しい定数を追加
         const DIFFICULTY_LEVELS = {
@@ -681,9 +715,13 @@
         const gameContainer = document.getElementById('game-container');
         const settingsIcon = document.getElementById('settings-icon');
         const settingsMenu = document.getElementById('settings-menu');
+        const currentGuessContainer = document.getElementById('current-guess'); // 現在の推測表示領域
 
         // 設定メニュー表示状態を管理
         let settingsOpen = false;
+
+        // ドラッグ＆ドロップ関連
+        let draggedItem = null;
 
         // ダークモードの切り替え
         function toggleDarkMode() {
@@ -797,14 +835,38 @@
 
         // 現在の推測を表示
         function updateCurrentGuessDisplay() {
-            const display = document.getElementById('current-guess');
-            display.innerHTML = '';
-            currentGuess.forEach(color => {
+            currentGuessContainer.innerHTML = '';
+            currentGuess.forEach((color, index) => {
                 const colorBox = document.createElement('div');
                 colorBox.classList.add('ui-color-box');
                 colorBox.style.backgroundColor = color;
-                colorBox.setAttribute('aria-label', `色: ${color}`); // アクセシビリティ: 色の説明を追加
-                display.appendChild(colorBox);
+                colorBox.setAttribute('aria-label', `色: ${color}, 位置: ${index + 1}`); // アクセシビリティ: 色と位置の説明を追加
+                colorBox.draggable = true; // ドラッグ可能にする
+                colorBox.dataset.index = index; // インデックスを保存
+
+                // ドラッグ開始時の処理
+                colorBox.addEventListener('dragstart', (event) => {
+                    draggedItem = event.target;
+                });
+
+                // ドロップ先の許可
+                colorBox.addEventListener('dragover', (event) => {
+                    event.preventDefault();
+                });
+
+                // ドロップ時の処理
+                colorBox.addEventListener('drop', (event) => {
+                    event.preventDefault();
+                    if (draggedItem !== event.target) {
+                        const originIndex = parseInt(draggedItem.dataset.index);
+                        const targetIndex = parseInt(event.target.dataset.index);
+
+                        // 配列内で要素を入れ替える
+                        [currentGuess[originIndex], currentGuess[targetIndex]] = [currentGuess[targetIndex], currentGuess[originIndex]];
+                        updateCurrentGuessDisplay(); // 表示を更新
+                    }
+                });
+                currentGuessContainer.appendChild(colorBox);
             });
         }
 
@@ -898,6 +960,18 @@
             }, 10); // わずかな遅延でアニメーションを有効化
         }
 
+        // アラートメッセージを表示する関数
+        function showAlertMessage(message) {
+            const alertMessageElement = document.getElementById('alert-message');
+            alertMessageElement.textContent = message;
+            alertMessageElement.classList.add('show');
+
+            // 3秒後にアラートを非表示にする
+            setTimeout(() => {
+                alertMessageElement.classList.remove('show');
+            }, 3000);
+        }
+
         // ゲームを開始
         function startGame() {
             secretCode = generateSecretCode();
@@ -987,7 +1061,7 @@
             } else {
                 // 難易度によって必要な色数を変える
                 const requiredColors = currentGameDifficulty.codeLength;
-                alert(`${requiredColors}つの色を選択してください。`);
+                showAlertMessage(`${requiredColors}つの色を選択してください。`);
             }
         });
 
@@ -1022,7 +1096,7 @@
                     hintButton.textContent = 'ヒント (使用済み)';
                 }
             } else {
-                alert('ヒントの使用回数制限を超えました。');
+                showAlertMessage('ヒントの使用回数制限を超えました。');
             }
         });
 
