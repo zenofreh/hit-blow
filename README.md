@@ -39,7 +39,7 @@
 
 ## ⚙️ セットアップ
 
-1.  リポジトリをクローン: `git clone https://github.com/あなたのユーザー名/あなたのリポジトリ名.git`
+1.  リポジトリをクローン: `git clone https://github.com/zenofreh/hit-blow.git`
 2.  `index.html`をブラウザで開きます。
     *   または、お好みのWebサーバーでホストしてください。
 
