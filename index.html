@@ -264,16 +264,7 @@
             }
         }
 
-        #difficulty-select {
-            margin-bottom: 20px;
-            padding: 10px 15px;
-            border: 1px solid #bdc3c7;
-            border-radius: 8px;
-            font-size: 1em;
-            color: #34495e;
-            background-color: #fff;
-            cursor: pointer;
-        }
+        
 
         #color-buttons {
             display: flex;
@@ -497,8 +488,10 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.5); /* 半透明の背景 */
-            z-index: 5; /* 設定メニューより低いzIndex */
+            background-color: rgba(0, 0, 0, 0.5);
+            /* 半透明の背景 */
+            z-index: 5;
+            /* 設定メニューより低いzIndex */
         }
 
         @media (max-width: 600px) {
@@ -590,10 +583,11 @@
                 <option value="pastel">パステル</option>
                 <option value="vibrant">ビビッド</option>
             </select>
+            <label for="difficulty-select">難易度:</label> <!-- アクセシビリティ: 難易度選択にもラベルを追加 -->
+            <select id="difficulty-select"></select>
             <button id="toggle-dark-mode">ダークモード/ライトモード</button>
         </div>
         <h1>Color Hit & Blow</h1>
-        <select id="difficulty-select"></select>
         <div id="color-buttons"></div>
         <p>現在の推測: <span id="current-guess"></span></p>
         <div id="button-container">
@@ -608,9 +602,9 @@
         <table id="guess-history-table">
             <thead>
                 <tr>
-                    <th>推測</th>
-                    <th>ヒット</th>
-                    <th>ブロー</th>
+                    <th scope="col">推測</th>
+                    <th scope="col">ヒット</th>
+                    <th scope="col">ブロー</th>
                 </tr>
             </thead>
             <tbody id="guess-history-body"></tbody>
@@ -663,6 +657,14 @@
             pastel: ["#F08080", "#ADD8E6", "#90EE90", "#FFFFE0", "#E6E6FA", "#FFA07A", "#FFB6C1", "#D2B48C"],
             vibrant: ["#FF0000", "#0000FF", "#00FF00", "#FFFF00", "#800080", "#FFA500", "#FF69B4", "#A52A2A"]
         };
+
+        // アクセシビリティのためのカラーテーマ
+        const colorBlindPalette = {
+            protanopia: ["#377eb8", "#e41a1c", "#4daf4a", "#984ea3", "#ff7f00", "#ffff33", "#a65628", "#f781bf"],
+            deuteranopia: ["#377eb8", "#e41a1c", "#4daf4a", "#984ea3", "#ff7f00", "#ffff33", "#a65628", "#f781bf"],
+            tritanopia: ["#377eb8", "#e41a1c", "#4daf4a", "#984ea3", "#ff7f00", "#ffff33", "#a65628", "#f781bf"]
+        };
+
         let currentColorPalette = "default";
         let NUM_COLORS = COLORS[currentColorPalette].length;
         let CODE_LENGTH = 4;
@@ -686,6 +688,7 @@
         // ダークモードの切り替え
         function toggleDarkMode() {
             document.body.classList.toggle('dark-mode');
+            saveSettings(); // 設定を保存
         }
 
         // 設定アイコンのクリックイベント
@@ -730,6 +733,7 @@
             availableColors = setupColors(currentGameDifficulty.numColors);
             NUM_COLORS = availableColors.length;
             resetGame(); // ゲームをリセット
+            saveSettings(); // 設定を保存
         });
 
         // HTMLで難易度を選択するドロップダウンリストを追加
@@ -746,6 +750,7 @@
             select.addEventListener("change", (event) => {
                 currentGameDifficulty = DIFFICULTY_LEVELS[event.target.value];
                 resetGame(); // 難易度を変更した場合、ゲームを再開
+                saveSettings(); // 設定を保存
             });
             // 適切な場所にドロップダウンリストを追加
             // document.getElementById("game-container").prepend(select); // 先頭に追加する例
@@ -771,6 +776,8 @@
         function createColorButton(color) {
             const button = document.createElement('button');
             button.style.backgroundColor = color;
+            button.setAttribute('aria-label', `色: ${color}`); // アクセシビリティ: ボタンに色の説明を追加
+
             button.addEventListener('click', () => {
                 if (currentGuess.length < CODE_LENGTH && !gameOver) {
                     currentGuess.push(color);
@@ -796,6 +803,7 @@
                 const colorBox = document.createElement('div');
                 colorBox.classList.add('ui-color-box');
                 colorBox.style.backgroundColor = color;
+                colorBox.setAttribute('aria-label', `色: ${color}`); // アクセシビリティ: 色の説明を追加
                 display.appendChild(colorBox);
             });
         }
@@ -858,6 +866,7 @@
                 const colorBox = document.createElement('div');
                 colorBox.classList.add('ui-color-box');
                 colorBox.style.backgroundColor = color;
+                colorBox.setAttribute('aria-label', `色: ${color}`); // アクセシビリティ: 色の説明を追加
                 guessCell.appendChild(colorBox);
             });
             row.appendChild(guessCell);
@@ -960,6 +969,7 @@
                         const colorBox = document.createElement('span');
                         colorBox.classList.add('ui-color-box');
                         colorBox.style.backgroundColor = color;
+                        colorBox.setAttribute('aria-label', `色: ${color}`); // アクセシビリティ: 色の説明を追加
                         resultText.appendChild(colorBox);
                     });
                     const resultContainer = document.getElementById('result');
@@ -996,15 +1006,15 @@
             startGame();
         });
 
-                // ヒントボタンの要素を取得
-                const hintButton = document.getElementById('hint-button');
+        // ヒントボタンの要素を取得
+        const hintButton = document.getElementById('hint-button');
         const hintDisplay = document.getElementById('hint');
 
-          // ヒントボタンがクリックされたときの処理
-          hintButton.addEventListener('click', () => {
+        // ヒントボタンがクリックされたときの処理
+        hintButton.addEventListener('click', () => {
             if (hintCount < maxHintCount) {
                 const hintText = generateHint(); // ヒントのテキスト部分だけを取得
-                hintDisplay.innerHTML = hintText;  // ヒントを表示
+                hintDisplay.innerHTML = hintText; // ヒントを表示
                 hintCount++; // 使用回数を増やす
                 // 最大回数を超えたらボタンを無効化
                 if (hintCount >= maxHintCount) {
@@ -1016,18 +1026,46 @@
             }
         });
 
-       // ヒントを生成する関数
-       function generateHint() {
+        // ヒントを生成する関数
+        function generateHint() {
             // ヒントの生成ロジック（例：少なくとも一つの色は正しい位置にある）
             const randomIndex = Math.floor(Math.random() * CODE_LENGTH); // ランダムな位置を選択
             const color = secretCode[randomIndex]; // 選択された位置の色を取得
             // 色のボックスを表示するためのHTMLを作成
-            const colorBox = `<div class="ui-color-box" style="background-color: ${color};"></div>`;
+            const colorBox = `<div class="ui-color-box" style="background-color: ${color};" aria-label="色: ${color}"></div>`; // アクセシビリティ: 色の説明を追加
             return `少なくとも、${randomIndex + 1}番目の位置には ${colorBox} が入っています。`; // ヒントのメッセージを生成
+        }
+
+        // 設定を保存する関数
+        function saveSettings() {
+            const settings = {
+                darkMode: document.body.classList.contains('dark-mode'),
+                colorPalette: currentColorPalette,
+                difficulty: document.getElementById('difficulty-select').value
+            };
+            localStorage.setItem('gameSettings', JSON.stringify(settings));
+        }
+
+        // 設定を読み込む関数
+        function loadSettings() {
+            const storedSettings = localStorage.getItem('gameSettings');
+            if (storedSettings) {
+                const settings = JSON.parse(storedSettings);
+                if (settings.darkMode) {
+                    document.body.classList.add('dark-mode');
+                }
+                document.getElementById('color-palette-select').value = settings.colorPalette;
+                currentColorPalette = settings.colorPalette; // グローバル変数も更新
+                document.getElementById('difficulty-select').value = settings.difficulty;
+                currentGameDifficulty = DIFFICULTY_LEVELS[settings.difficulty]; // グローバル変数も更新
+                availableColors = setupColors(currentGameDifficulty.numColors); // 色を再設定
+                NUM_COLORS = availableColors.length; // 色数を更新
+            }
         }
 
         // 起動時に呼び出し
         setupDifficultySelection();
+        loadSettings(); // 設定を読み込む
         availableColors = setupColors(currentGameDifficulty.numColors);
         resetGame(); // ゲームの初期化と起動を resetGame にまとめる
         updateColorButtons();
