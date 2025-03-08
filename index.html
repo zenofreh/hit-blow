@@ -595,6 +595,46 @@
             opacity: 1;
             top: 50px;
         }
+
+        /* カスタムカラーパレット用スタイル */
+        #custom-color-palette {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            /* 左寄せ */
+            align-items: center;
+        }
+
+        #custom-color-palette input[type="color"] {
+            width: 30px;
+            height: 30px;
+            margin: 5px;
+            padding: 0;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        #custom-color-palette button {
+            padding: 5px 10px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            background-color: #3498db;
+            color: white;
+            cursor: pointer;
+            font-size: 0.8em;
+        }
+
+        #color-blind-palette-select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #bdc3c7;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            font-size: 1em;
+            cursor: pointer;
+        }
     </style>
 </head>
 
@@ -608,7 +648,30 @@
                 <option value="default">デフォルト</option>
                 <option value="pastel">パステル</option>
                 <option value="vibrant">ビビッド</option>
+                <option value="colorblind">色覚サポート</option>
+                <option value="custom">カスタム</option>
             </select>
+
+            <!-- 色覚サポート カラーパレットの選択肢を追加 -->
+            <label for="color-blind-palette-select">色覚タイプ:</label>
+            <select id="color-blind-palette-select" style="display:none;">
+                <option value="protanopia">Protanopia (赤色盲)</option>
+                <option value="deuteranopia">Deuteranopia (緑色盲)</option>
+                <option value="tritanopia">Tritanopia (青色盲)</option>
+            </select>
+
+            <!-- カスタムカラーパレットの入力欄を追加 -->
+            <div id="custom-color-palette" style="display:none;">
+                <label>カスタムカラーパレット:</label>
+                <input type="color" value="#ff0000">
+                <input type="color" value="#00ff00">
+                <input type="color" value="#0000ff">
+                <input type="color" value="#ffff00">
+                <input type="color" value="#ff00ff">
+                <input type="color" value="#00ffff">
+                <button id="apply-custom-colors">適用</button>
+            </div>
+
             <label for="difficulty-select">難易度:</label> <!-- アクセシビリティ: 難易度選択にもラベルを追加 -->
             <select id="difficulty-select"></select>
             <button id="toggle-dark-mode">ダークモード/ライトモード</button>
@@ -716,6 +779,9 @@
         const settingsIcon = document.getElementById('settings-icon');
         const settingsMenu = document.getElementById('settings-menu');
         const currentGuessContainer = document.getElementById('current-guess'); // 現在の推測表示領域
+        const colorPaletteSelect = document.getElementById('color-palette-select');
+        const colorBlindPaletteSelect = document.getElementById('color-blind-palette-select');
+        const customColorPalette = document.getElementById('custom-color-palette');
 
         // 設定メニュー表示状態を管理
         let settingsOpen = false;
@@ -765,14 +831,60 @@
             toggleDarkMode();
         });
 
-        // 色の種類を変更
-        document.getElementById('color-palette-select').addEventListener('change', (event) => {
-            currentColorPalette = event.target.value;
+        // カラーパレット選択の処理
+        colorPaletteSelect.addEventListener('change', () => {
+            currentColorPalette = colorPaletteSelect.value;
+
+            // 色覚サポートの場合
+            if (currentColorPalette === 'colorblind') {
+                colorBlindPaletteSelect.style.display = 'block';
+                customColorPalette.style.display = 'none';
+                updateColorPalette(colorBlindPalette[colorBlindPaletteSelect.value]);
+            }
+            // カスタムカラーパレットの場合
+            else if (currentColorPalette === 'custom') {
+                colorBlindPaletteSelect.style.display = 'none';
+                customColorPalette.style.display = 'block';
+                // 最初のカスタムカラーパレットを適用
+                updateCustomColors();
+            }
+            // その他のデフォルトのパレットの場合
+            else {
+                colorBlindPaletteSelect.style.display = 'none';
+                customColorPalette.style.display = 'none';
+                updateColorPalette(COLORS[currentColorPalette]);
+            }
+        });
+
+        // 色覚サポートの選択肢が変わったときの処理
+        colorBlindPaletteSelect.addEventListener('change', () => {
+            updateColorPalette(colorBlindPalette[colorBlindPaletteSelect.value]);
+        });
+
+        // カスタムカラー適用ボタンの処理
+        document.getElementById('apply-custom-colors').addEventListener('click', () => {
+            updateCustomColors();
+        });
+
+        // カスタムカラーパレットを更新する関数
+        function updateCustomColors() {
+            let customColors = [];
+            let colorInputs = customColorPalette.querySelectorAll('input[type="color"]');
+            colorInputs.forEach(input => {
+                customColors.push(input.value);
+            });
+            updateColorPalette(customColors);
+        }
+
+        // 実際にカラーパレットを更新する関数
+        function updateColorPalette(newColors) {
+            COLORS['current'] = newColors;  // 'current' パレットを更新
+            currentColorPalette = 'current';
             availableColors = setupColors(currentGameDifficulty.numColors);
             NUM_COLORS = availableColors.length;
-            resetGame(); // ゲームをリセット
-            saveSettings(); // 設定を保存
-        });
+            resetGame();
+            saveSettings();
+        }
 
         // HTMLで難易度を選択するドロップダウンリストを追加
         function setupDifficultySelection() {
@@ -805,7 +917,7 @@
         }
 
         function setupColors(numColors) {
-            return COLORS[currentColorPalette].slice(0, numColors);
+            return COLORS[currentColorPalette]?.slice(0, numColors) || COLORS['default'].slice(0, numColors);
         }
 
         // 色ボタンの作成
@@ -1130,6 +1242,21 @@
                 }
                 document.getElementById('color-palette-select').value = settings.colorPalette;
                 currentColorPalette = settings.colorPalette; // グローバル変数も更新
+
+                // 新しい条件を追加
+                if (settings.colorPalette === 'colorblind') {
+                    document.getElementById('color-blind-palette-select').value = settings.colorBlindType || 'protanopia'; // デフォルト値を設定
+                    colorBlindPaletteSelect.style.display = 'block';
+                    customColorPalette.style.display = 'none';
+                } else if (settings.colorPalette === 'custom') {
+                    colorBlindPaletteSelect.style.display = 'none';
+                    customColorPalette.style.display = 'block';
+                    // カスタムカラーを復元する処理を追加（例：LocalStorageから色の値を読み込む）
+                    // ...
+                } else {
+                    colorBlindPaletteSelect.style.display = 'none';
+                    customColorPalette.style.display = 'none';
+                }
                 document.getElementById('difficulty-select').value = settings.difficulty;
                 currentGameDifficulty = DIFFICULTY_LEVELS[settings.difficulty]; // グローバル変数も更新
                 availableColors = setupColors(currentGameDifficulty.numColors); // 色を再設定
