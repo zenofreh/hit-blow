@@ -357,6 +357,7 @@
             opacity: 0.6;
             cursor: not-allowed;
             transform: none;
+            /* ホバー効果を無効化 */
         }
 
         #guess-history-table {
@@ -459,7 +460,8 @@
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
             padding: 15px;
-            width: 200px;
+            width: 250px;
+            /* 幅を少し広げる */
             text-align: left;
             z-index: 10;
             display: none;
@@ -562,6 +564,7 @@
             opacity: 0.6;
             cursor: not-allowed;
             transform: none;
+            /* ホバー効果を無効化 */
         }
 
         /* ヒント表示エリアのスタイル */
@@ -605,25 +608,40 @@
             align-items: center;
         }
 
+        #custom-color-palette .color-input-wrapper {
+            display: flex;
+            align-items: center;
+            margin: 5px;
+        }
+
         #custom-color-palette input[type="color"] {
             width: 30px;
             height: 30px;
-            margin: 5px;
             padding: 0;
             border: none;
             border-radius: 50%;
             cursor: pointer;
+            margin-right: 5px;
         }
 
         #custom-color-palette button {
             padding: 5px 10px;
-            margin: 5px;
             border: none;
             border-radius: 5px;
             background-color: #3498db;
             color: white;
             cursor: pointer;
             font-size: 0.8em;
+        }
+
+        #custom-color-palette .remove-color {
+            background-color: #e74c3c;
+            /* 赤色 */
+        }
+
+        #custom-color-palette .add-color {
+            background-color: #2ecc71;
+            /* 緑色 */
         }
 
         #color-blind-palette-select {
@@ -634,6 +652,26 @@
             margin-bottom: 12px;
             font-size: 1em;
             cursor: pointer;
+        }
+
+        /* ランキングテーブルのスタイル */
+        #ranking-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            border: 1px solid #bdc3c7;
+        }
+
+        #ranking-table th,
+        #ranking-table td {
+            border: 1px solid #bdc3c7;
+            padding: 8px;
+            text-align: center;
+        }
+
+        #ranking-table th {
+            background-color: #f0f0f0;
+            font-weight: 600;
         }
     </style>
 </head>
@@ -663,16 +701,15 @@
             <!-- カスタムカラーパレットの入力欄を追加 -->
             <div id="custom-color-palette" style="display:none;">
                 <label>カスタムカラーパレット:</label>
-                <input type="color" value="#ff0000">
-                <input type="color" value="#00ff00">
-                <input type="color" value="#0000ff">
-                <input type="color" value="#ffff00">
-                <input type="color" value="#ff00ff">
-                <input type="color" value="#00ffff">
+                <div id="custom-colors-container">
+                    <!-- カラーピッカーがここに追加される -->
+                </div>
+                <button id="add-color" class="add-color">色を追加</button>
                 <button id="apply-custom-colors">適用</button>
             </div>
 
-            <label for="difficulty-select">難易度:</label> <!-- アクセシビリティ: 難易度選択にもラベルを追加 -->
+            <label for="difficulty-select">難易度:</label>
+            <!-- アクセシビリティ: 難易度選択にもラベルを追加 -->
             <select id="difficulty-select"></select>
             <button id="toggle-dark-mode">ダークモード/ライトモード</button>
         </div>
@@ -701,6 +738,19 @@
                 </tr>
             </thead>
             <tbody id="guess-history-body"></tbody>
+        </table>
+        <h2>ランキング</h2>
+        <table id="ranking-table">
+            <thead>
+                <tr>
+                    <th>順位</th>
+                    <th>名前</th>
+                    <th>スコア</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- ランキングデータがここに追加される -->
+            </tbody>
         </table>
         <div id="result"></div>
     </div>
@@ -752,7 +802,7 @@
         let COLORS = {
             default: ["red", "blue", "green", "yellow", "purple", "orange", "pink", "brown"],
             pastel: ["#F08080", "#ADD8E6", "#90EE90", "#FFFFE0", "#E6E6FA", "#FFA07A", "#FFB6C1", "#D2B48C"],
-            vibrant: ["#FF0000", "#0000FF", "#00FF00", "#FFFF00", "#800080", "#FFA500", "#FF69B4", "#A52A2A"]
+            vibrant: ["#FF0000", "#0000FF", "#00FF00", "#FFFF00", "#800080", "#FFA500", "#FF69B4", "#A52A2A"],
         };
 
         // アクセシビリティのためのカラーテーマ
@@ -782,6 +832,13 @@
         const colorPaletteSelect = document.getElementById('color-palette-select');
         const colorBlindPaletteSelect = document.getElementById('color-blind-palette-select');
         const customColorPalette = document.getElementById('custom-color-palette');
+        const customColorsContainer = document.getElementById('custom-colors-container');
+
+        // 初期カスタムカラーパレット
+        let customColors = ["#ff0000", "#00ff00", "#0000ff", "#ffff00", "#ff00ff", "#00ffff"];
+
+        // バックエンドのAPIエンドポイント (必要に応じて変更)
+        const API_BASE_URL = "/api";
 
         // 設定メニュー表示状態を管理
         let settingsOpen = false;
@@ -845,8 +902,7 @@
             else if (currentColorPalette === 'custom') {
                 colorBlindPaletteSelect.style.display = 'none';
                 customColorPalette.style.display = 'block';
-                // 最初のカスタムカラーパレットを適用
-                updateCustomColors();
+                renderCustomColorPalette(); // カスタムカラーUIをレンダリング
             }
             // その他のデフォルトのパレットの場合
             else {
@@ -863,27 +919,75 @@
 
         // カスタムカラー適用ボタンの処理
         document.getElementById('apply-custom-colors').addEventListener('click', () => {
+            saveCustomColors();
             updateCustomColors();
+        });
+
+        // 色を追加ボタンの処理
+        document.getElementById('add-color').addEventListener('click', () => {
+            customColors.push("#cccccc"); // デフォルト色を追加
+            saveCustomColors();
+            renderCustomColorPalette();
         });
 
         // カスタムカラーパレットを更新する関数
         function updateCustomColors() {
-            let customColors = [];
-            let colorInputs = customColorPalette.querySelectorAll('input[type="color"]');
+            let newCustomColors = [];
+            let colorInputs = customColorsContainer.querySelectorAll('input[type="color"]');
             colorInputs.forEach(input => {
-                customColors.push(input.value);
+                newCustomColors.push(input.value);
             });
-            updateColorPalette(customColors);
+            updateColorPalette(newCustomColors);
         }
 
         // 実際にカラーパレットを更新する関数
         function updateColorPalette(newColors) {
-            COLORS['current'] = newColors;  // 'current' パレットを更新
+            COLORS['current'] = newColors; // 'current' パレットを更新
             currentColorPalette = 'current';
             availableColors = setupColors(currentGameDifficulty.numColors);
             NUM_COLORS = availableColors.length;
             resetGame();
             saveSettings();
+        }
+
+        // カスタムカラーパレットのレンダリング
+        function renderCustomColorPalette() {
+            customColorsContainer.innerHTML = ''; // Clear existing palette
+
+            customColors.forEach((color, index) => {
+                const colorInputWrapper = document.createElement('div');
+                colorInputWrapper.classList.add('color-input-wrapper');
+
+                const colorInput = document.createElement('input');
+                colorInput.type = 'color';
+                colorInput.value = color;
+                colorInputWrapper.appendChild(colorInput);
+
+                const removeButton = document.createElement('button');
+                removeButton.classList.add('remove-color');
+                removeButton.textContent = '削除';
+                removeButton.addEventListener('click', () => {
+                    customColors.splice(index, 1);
+                    saveCustomColors();
+                    renderCustomColorPalette();
+                });
+                colorInputWrapper.appendChild(removeButton);
+
+                customColorsContainer.appendChild(colorInputWrapper);
+            });
+        }
+
+        // カスタムカラーパレットの値を LocalStorage に保存
+        function saveCustomColors() {
+            localStorage.setItem('customColors', JSON.stringify(customColors));
+        }
+
+        // LocalStorage からカスタムカラーパレットの値をロード
+        function loadCustomColors() {
+            const storedColors = localStorage.getItem('customColors');
+            if (storedColors) {
+                customColors = JSON.parse(storedColors);
+            }
         }
 
         // HTMLで難易度を選択するドロップダウンリストを追加
@@ -1084,6 +1188,74 @@
             }, 3000);
         }
 
+        // スコアを計算する関数
+        function calculateScore() {
+            // 例: 推測回数が少ないほど、ヒントの使用回数が少ないほど高スコア
+            const score = Math.max(0, (MAX_GUESSES - guessCount) * 100 - hintCount * 50);
+            return score;
+        }
+
+        // スコアを送信する関数
+        async function submitScore(username, score) {
+            const apiUrl = `${API_BASE_URL}/scores`; // バックエンドのAPIエンドポイント
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        score: score
+                    })
+                });
+                if (!response.ok) {
+                    throw new Error(`スコア送信エラー: ${response.status}`);
+                }
+                console.log('スコア送信成功');
+            } catch (error) {
+                console.error('スコア送信エラー:', error);
+                showAlertMessage('スコア送信に失敗しました。'); // 必要に応じてエラーメッセージを表示
+            }
+        }
+
+        // ランキングデータを取得する関数
+        async function fetchRankingData() {
+            const apiUrl = `${API_BASE_URL}/scores?limit=10`; // ランキング取得APIエンドポイント
+            try {
+                const response = await fetch(apiUrl);
+                if (!response.ok) {
+                    throw new Error(`ランキング取得エラー: ${response.status}`);
+                }
+                const rankingData = await response.json();
+                return rankingData;
+            } catch (error) {
+                console.error('ランキング取得エラー:', error);
+                showAlertMessage('ランキングデータの取得に失敗しました。'); // 必要に応じてエラーメッセージを表示
+                return []; // エラー時は空の配列を返す
+            }
+        }
+
+        // ランキングデータを表示する関数
+        function displayRanking(rankingData) {
+            const rankingTableBody = document.querySelector('#ranking-table tbody');
+            rankingTableBody.innerHTML = ''; // 既存のデータをクリア
+
+            rankingData.forEach((entry, index) => {
+                const row = document.createElement('tr');
+                const rankCell = document.createElement('td');
+                rankCell.textContent = index + 1;
+                const nameCell = document.createElement('td');
+                nameCell.textContent = entry.username;
+                const scoreCell = document.createElement('td');
+                scoreCell.textContent = entry.score;
+                row.appendChild(rankCell);
+                row.appendChild(nameCell);
+                row.appendChild(scoreCell);
+                rankingTableBody.appendChild(row);
+            });
+        }
+
         // ゲームを開始
         function startGame() {
             secretCode = generateSecretCode();
@@ -1107,6 +1279,41 @@
 
             const hintDisplay = document.getElementById('hint');
             hintDisplay.textContent = ''; // ヒント表示をクリア
+        }
+
+        function handleGameOver() {
+            gameOver = true;
+            document.getElementById('undo-button').disabled = true;
+            document.getElementById('guess-button').disabled = true;
+            disableColorButtons();
+
+            const score = calculateScore();
+            const username = prompt("ゲームクリア！名前を入力してください:", "プレイヤー");
+
+            if (username) {
+                submitScore(username, score).then(() => { // スコア送信後にランキングを更新
+                    fetchRankingData().then(data => displayRanking(data));
+                });
+            } else {
+                //名前を入れなかった場合
+                fetchRankingData().then(data => displayRanking(data));
+            }
+
+            // 結果に関わらずメッセージは出す
+             const resultText = document.createElement('p');
+            resultText.textContent = 'ゲームオーバー！正解は: ';
+            secretCode.forEach(color => {
+                const colorBox = document.createElement('span');
+                colorBox.classList.add('ui-color-box');
+                colorBox.style.backgroundColor = color;
+                colorBox.setAttribute('aria-label', `色: ${color}`); // アクセシビリティ: 色の説明を追加
+                resultText.appendChild(colorBox);
+            });
+            const resultContainer = document.getElementById('result');
+            resultContainer.innerHTML = ''; // Clear previous content
+            resultContainer.appendChild(resultText);
+            resultContainer.classList.add('result-fade-in');
+
         }
 
         // 色ボタンの状態を更新
@@ -1139,29 +1346,9 @@
                 });
                 if (result.hit === CODE_LENGTH) {
                     document.getElementById('result').textContent = 'おめでとうございます！正解です！';
-                    gameOver = true;
-                    document.getElementById('undo-button').disabled = true;
-                    document.getElementById('guess-button').disabled = true;
-                    disableColorButtons();
+                    handleGameOver();
                 } else if (guessCount >= MAX_GUESSES) {
-                    gameOver = true;
-                    document.getElementById('undo-button').disabled = true;
-                    document.getElementById('guess-button').disabled = true;
-                    disableColorButtons();
-                    // Create the message elements
-                    const resultText = document.createElement('p');
-                    resultText.textContent = 'ゲームオーバー！正解は: ';
-                    secretCode.forEach(color => {
-                        const colorBox = document.createElement('span');
-                        colorBox.classList.add('ui-color-box');
-                        colorBox.style.backgroundColor = color;
-                        colorBox.setAttribute('aria-label', `色: ${color}`); // アクセシビリティ: 色の説明を追加
-                        resultText.appendChild(colorBox);
-                    });
-                    const resultContainer = document.getElementById('result');
-                    resultContainer.innerHTML = ''; // Clear previous content
-                    resultContainer.appendChild(resultText);
-                    resultContainer.classList.add('result-fade-in');
+                    handleGameOver();
                 }
                 // 結果に関わらず、推測後に currentGuess をクリア
                 currentGuess = [];
@@ -1229,6 +1416,12 @@
                 colorPalette: currentColorPalette,
                 difficulty: document.getElementById('difficulty-select').value
             };
+
+            // カスタムカラーの場合
+            if (currentColorPalette === 'custom') {
+                settings.customColors = customColors;
+            }
+
             localStorage.setItem('gameSettings', JSON.stringify(settings));
         }
 
@@ -1248,14 +1441,19 @@
                     document.getElementById('color-blind-palette-select').value = settings.colorBlindType || 'protanopia'; // デフォルト値を設定
                     colorBlindPaletteSelect.style.display = 'block';
                     customColorPalette.style.display = 'none';
+                    updateColorPalette(colorBlindPalette[document.getElementById('color-blind-palette-select').value]);
                 } else if (settings.colorPalette === 'custom') {
                     colorBlindPaletteSelect.style.display = 'none';
                     customColorPalette.style.display = 'block';
-                    // カスタムカラーを復元する処理を追加（例：LocalStorageから色の値を読み込む）
-                    // ...
+                    // カスタムカラーを復元
+                    if (settings.customColors) {
+                        customColors = settings.customColors;
+                    }
+                    renderCustomColorPalette();
                 } else {
                     colorBlindPaletteSelect.style.display = 'none';
                     customColorPalette.style.display = 'none';
+                    updateColorPalette(COLORS[currentColorPalette]);
                 }
                 document.getElementById('difficulty-select').value = settings.difficulty;
                 currentGameDifficulty = DIFFICULTY_LEVELS[settings.difficulty]; // グローバル変数も更新
@@ -1266,10 +1464,13 @@
 
         // 起動時に呼び出し
         setupDifficultySelection();
+        loadCustomColors(); // カスタムカラーをロード
         loadSettings(); // 設定を読み込む
         availableColors = setupColors(currentGameDifficulty.numColors);
         resetGame(); // ゲームの初期化と起動を resetGame にまとめる
         updateColorButtons();
+        //ランキングデータを表示
+        fetchRankingData().then(data => displayRanking(data));
     </script>
 </body>
 
