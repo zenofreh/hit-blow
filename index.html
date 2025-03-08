@@ -357,7 +357,6 @@
             opacity: 0.6;
             cursor: not-allowed;
             transform: none;
-            /* ホバー効果を無効化 */
         }
 
         #guess-history-table {
@@ -460,8 +459,7 @@
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
             padding: 15px;
-            width: 250px;
-            /* 幅を少し広げる */
+            width: 250px;  /* 幅を少し広げる */
             text-align: left;
             z-index: 10;
             display: none;
@@ -564,7 +562,6 @@
             opacity: 0.6;
             cursor: not-allowed;
             transform: none;
-            /* ホバー効果を無効化 */
         }
 
         /* ヒント表示エリアのスタイル */
@@ -603,8 +600,7 @@
         #custom-color-palette {
             display: flex;
             flex-wrap: wrap;
-            justify-content: flex-start;
-            /* 左寄せ */
+            justify-content: flex-start; /* 左寄せ */
             align-items: center;
         }
 
@@ -635,13 +631,11 @@
         }
 
         #custom-color-palette .remove-color {
-            background-color: #e74c3c;
-            /* 赤色 */
+            background-color: #e74c3c; /* 赤色 */
         }
 
         #custom-color-palette .add-color {
-            background-color: #2ecc71;
-            /* 緑色 */
+            background-color: #2ecc71; /* 緑色 */
         }
 
         #color-blind-palette-select {
@@ -652,26 +646,6 @@
             margin-bottom: 12px;
             font-size: 1em;
             cursor: pointer;
-        }
-
-        /* ランキングテーブルのスタイル */
-        #ranking-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-            border: 1px solid #bdc3c7;
-        }
-
-        #ranking-table th,
-        #ranking-table td {
-            border: 1px solid #bdc3c7;
-            padding: 8px;
-            text-align: center;
-        }
-
-        #ranking-table th {
-            background-color: #f0f0f0;
-            font-weight: 600;
         }
     </style>
 </head>
@@ -708,8 +682,7 @@
                 <button id="apply-custom-colors">適用</button>
             </div>
 
-            <label for="difficulty-select">難易度:</label>
-            <!-- アクセシビリティ: 難易度選択にもラベルを追加 -->
+            <label for="difficulty-select">難易度:</label> <!-- アクセシビリティ: 難易度選択にもラベルを追加 -->
             <select id="difficulty-select"></select>
             <button id="toggle-dark-mode">ダークモード/ライトモード</button>
         </div>
@@ -738,19 +711,6 @@
                 </tr>
             </thead>
             <tbody id="guess-history-body"></tbody>
-        </table>
-        <h2>ランキング</h2>
-        <table id="ranking-table">
-            <thead>
-                <tr>
-                    <th>順位</th>
-                    <th>名前</th>
-                    <th>スコア</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- ランキングデータがここに追加される -->
-            </tbody>
         </table>
         <div id="result"></div>
     </div>
@@ -836,9 +796,6 @@
 
         // 初期カスタムカラーパレット
         let customColors = ["#ff0000", "#00ff00", "#0000ff", "#ffff00", "#ff00ff", "#00ffff"];
-
-        // バックエンドのAPIエンドポイント (必要に応じて変更)
-        const API_BASE_URL = "/api";
 
         // 設定メニュー表示状態を管理
         let settingsOpen = false;
@@ -942,7 +899,7 @@
 
         // 実際にカラーパレットを更新する関数
         function updateColorPalette(newColors) {
-            COLORS['current'] = newColors; // 'current' パレットを更新
+            COLORS['current'] = newColors;  // 'current' パレットを更新
             currentColorPalette = 'current';
             availableColors = setupColors(currentGameDifficulty.numColors);
             NUM_COLORS = availableColors.length;
@@ -1188,74 +1145,6 @@
             }, 3000);
         }
 
-        // スコアを計算する関数
-        function calculateScore() {
-            // 例: 推測回数が少ないほど、ヒントの使用回数が少ないほど高スコア
-            const score = Math.max(0, (MAX_GUESSES - guessCount) * 100 - hintCount * 50);
-            return score;
-        }
-
-        // スコアを送信する関数
-        async function submitScore(username, score) {
-            const apiUrl = `${API_BASE_URL}/scores`; // バックエンドのAPIエンドポイント
-            try {
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        username: username,
-                        score: score
-                    })
-                });
-                if (!response.ok) {
-                    throw new Error(`スコア送信エラー: ${response.status}`);
-                }
-                console.log('スコア送信成功');
-            } catch (error) {
-                console.error('スコア送信エラー:', error);
-                showAlertMessage('スコア送信に失敗しました。'); // 必要に応じてエラーメッセージを表示
-            }
-        }
-
-        // ランキングデータを取得する関数
-        async function fetchRankingData() {
-            const apiUrl = `${API_BASE_URL}/scores?limit=10`; // ランキング取得APIエンドポイント
-            try {
-                const response = await fetch(apiUrl);
-                if (!response.ok) {
-                    throw new Error(`ランキング取得エラー: ${response.status}`);
-                }
-                const rankingData = await response.json();
-                return rankingData;
-            } catch (error) {
-                console.error('ランキング取得エラー:', error);
-                showAlertMessage('ランキングデータの取得に失敗しました。'); // 必要に応じてエラーメッセージを表示
-                return []; // エラー時は空の配列を返す
-            }
-        }
-
-        // ランキングデータを表示する関数
-        function displayRanking(rankingData) {
-            const rankingTableBody = document.querySelector('#ranking-table tbody');
-            rankingTableBody.innerHTML = ''; // 既存のデータをクリア
-
-            rankingData.forEach((entry, index) => {
-                const row = document.createElement('tr');
-                const rankCell = document.createElement('td');
-                rankCell.textContent = index + 1;
-                const nameCell = document.createElement('td');
-                nameCell.textContent = entry.username;
-                const scoreCell = document.createElement('td');
-                scoreCell.textContent = entry.score;
-                row.appendChild(rankCell);
-                row.appendChild(nameCell);
-                row.appendChild(scoreCell);
-                rankingTableBody.appendChild(row);
-            });
-        }
-
         // ゲームを開始
         function startGame() {
             secretCode = generateSecretCode();
@@ -1279,41 +1168,6 @@
 
             const hintDisplay = document.getElementById('hint');
             hintDisplay.textContent = ''; // ヒント表示をクリア
-        }
-
-        function handleGameOver() {
-            gameOver = true;
-            document.getElementById('undo-button').disabled = true;
-            document.getElementById('guess-button').disabled = true;
-            disableColorButtons();
-
-            const score = calculateScore();
-            const username = prompt("ゲームクリア！名前を入力してください:", "プレイヤー");
-
-            if (username) {
-                submitScore(username, score).then(() => { // スコア送信後にランキングを更新
-                    fetchRankingData().then(data => displayRanking(data));
-                });
-            } else {
-                //名前を入れなかった場合
-                fetchRankingData().then(data => displayRanking(data));
-            }
-
-            // 結果に関わらずメッセージは出す
-             const resultText = document.createElement('p');
-            resultText.textContent = 'ゲームオーバー！正解は: ';
-            secretCode.forEach(color => {
-                const colorBox = document.createElement('span');
-                colorBox.classList.add('ui-color-box');
-                colorBox.style.backgroundColor = color;
-                colorBox.setAttribute('aria-label', `色: ${color}`); // アクセシビリティ: 色の説明を追加
-                resultText.appendChild(colorBox);
-            });
-            const resultContainer = document.getElementById('result');
-            resultContainer.innerHTML = ''; // Clear previous content
-            resultContainer.appendChild(resultText);
-            resultContainer.classList.add('result-fade-in');
-
         }
 
         // 色ボタンの状態を更新
@@ -1346,9 +1200,29 @@
                 });
                 if (result.hit === CODE_LENGTH) {
                     document.getElementById('result').textContent = 'おめでとうございます！正解です！';
-                    handleGameOver();
+                    gameOver = true;
+                    document.getElementById('undo-button').disabled = true;
+                    document.getElementById('guess-button').disabled = true;
+                    disableColorButtons();
                 } else if (guessCount >= MAX_GUESSES) {
-                    handleGameOver();
+                    gameOver = true;
+                    document.getElementById('undo-button').disabled = true;
+                    document.getElementById('guess-button').disabled = true;
+                    disableColorButtons();
+                    // Create the message elements
+                    const resultText = document.createElement('p');
+                    resultText.textContent = 'ゲームオーバー！正解は: ';
+                    secretCode.forEach(color => {
+                        const colorBox = document.createElement('span');
+                        colorBox.classList.add('ui-color-box');
+                        colorBox.style.backgroundColor = color;
+                        colorBox.setAttribute('aria-label', `色: ${color}`); // アクセシビリティ: 色の説明を追加
+                        resultText.appendChild(colorBox);
+                    });
+                    const resultContainer = document.getElementById('result');
+                    resultContainer.innerHTML = ''; // Clear previous content
+                    resultContainer.appendChild(resultText);
+                    resultContainer.classList.add('result-fade-in');
                 }
                 // 結果に関わらず、推測後に currentGuess をクリア
                 currentGuess = [];
@@ -1469,8 +1343,6 @@
         availableColors = setupColors(currentGameDifficulty.numColors);
         resetGame(); // ゲームの初期化と起動を resetGame にまとめる
         updateColorButtons();
-        //ランキングデータを表示
-        fetchRankingData().then(data => displayRanking(data));
     </script>
 </body>
 
