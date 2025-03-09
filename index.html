@@ -127,6 +127,47 @@
             transition: background-color 0.3s ease, color 0.3s ease;
         }
 
+        /* 基本スタイル */
+        body {
+            font-family: 'Roboto', sans-serif;
+            /* モダンなフォント */
+            background-color: #ecf0f1;
+            /* 明るい背景色 */
+            color: #34495e;
+            /* ダークなテキストカラー */
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        h1,
+        h2 {
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            font-size: 1.8em;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+
+        #credit {
+            font-size: 0.8em;
+            margin-top: 20px;
+            text-align: center;
+            color: #7f8c8d;
+        }
+
+        /* ダークモード */
         body.dark-mode {
             background-color: #333;
             color: #eee;
@@ -168,67 +209,30 @@
             color: #fff;
         }
 
-        ol,
-        ul {
-            list-style: none;
+        /* ダークモード時のヒント欄 */
+        body.dark-mode #hint {
+            background-color: #444;
+            color: #eee;
+            border-color: #666;
         }
 
-        blockquote,
-        q {
-            quotes: none;
-            }
-
-        blockquote:before,
-        blockquote:after,
-        q:before,
-        q:after {
-            content: '';
-            content: none;
+        /* ダークモード時の設定メニュー */
+        body.dark-mode #settings-menu {
+            background-color: #444;
+            color: #eee;
         }
 
-        table {
-            border-collapse: collapse;
-            border-spacing: 0;
+        body.dark-mode #settings-menu select,
+        body.dark-mode #settings-menu button {
+            border-color: #666;
+            color: #eee;
+            background-color: #555;
         }
 
-        /* 基本スタイル */
-        body {
-            font-family: 'Roboto', sans-serif;
-            /* モダンなフォント */
-            background-color: #ecf0f1;
-            /* 明るい背景色 */
-            color: #34495e;
-            /* ダークなテキストカラー */
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-        }
-
-        h1,
-        h2 {
-            font-weight: 700;
-            color: #2c3e50;
-        }
-
-        h1 {
-            font-size: 2.5em;
-            margin-bottom: 20px;
-        }
-
-        h2 {
-            font-size: 1.8em;
-            margin-top: 30px;
-            margin-bottom: 15px;
-        }
-
-        #credit {
-            font-size: 0.8em;
-            margin-top: 20px;
-            text-align: center;
-            color: #7f8c8d;
+        body.dark-mode #settings-menu #color-blind-palette-select,
+        body.dark-mode #settings-menu input[type="color"] {
+            background-color: #444;
+            color: #eee;
         }
 
         #game-container {
@@ -437,20 +441,28 @@
             background-color: transparent;
         }
 
-        #settings-icon {
+        /* 設定アイコン */
+        #settings-icon-container {
             position: absolute;
             top: 10px;
             right: 10px;
-            font-size: 1.5em;
             cursor: pointer;
             color: #7f8c8d;
             transition: color 0.3s ease;
+            display: flex;
+            align-items: center;
         }
 
-        #settings-icon:hover {
+        #settings-icon-container:hover {
             color: #34495e;
         }
 
+        #settings-icon {
+            font-size: 1.5em;
+            margin-right: 5px;
+        }
+
+        /* 設定メニュー */
         #settings-menu {
             position: absolute;
             top: 40px;
@@ -465,6 +477,7 @@
             text-align: left;
             z-index: 10;
             display: none;
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
         }
 
         #settings-menu.show {
@@ -486,6 +499,7 @@
             margin-bottom: 12px;
             font-size: 1em;
             cursor: pointer;
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
         }
 
         /* 設定メニューの外側をクリックで閉じるためのスタイル */
@@ -577,6 +591,7 @@
             text-align: left;
             font-size: 0.9em;
             color: #7f8c8d;
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
         }
 
         /* アラートメッセージのスタイル */
@@ -673,7 +688,11 @@
 <body>
     <p id="credit">Created by zeno</p>
     <div id="game-container">
-        <i id="settings-icon" class="fas fa-cog" aria-label="設定"></i>
+        <!-- 設定アイコンとテキストをコンテナで囲む -->
+        <div id="settings-icon-container">
+            <i id="settings-icon" class="fas fa-cog" aria-label="設定"></i>
+            <span>設定</span>
+        </div>
         <div id="settings-menu">
             <label for="color-palette-select">色の種類:</label>
             <select id="color-palette-select">
@@ -836,783 +855,804 @@
         // ドラッグ＆ドロップ関連
         let draggedItem = null;
 
-        // ダークモードの切り替え
-        function toggleDarkMode() {
-            document.body.classList.toggle('dark-mode');
-            saveSettings(); // 設定を保存
-        }
+        // 初期化
+        initializeGame();
 
-        // 設定アイコンのクリックイベント
-        settingsIcon.addEventListener('click', (event) => {
-            event.stopPropagation(); // イベントの伝播を停止
-            settingsOpen = !settingsOpen;
-            updateSettingsMenuVisibility();
-        });
-
-        // 設定メニューの外側をクリックで閉じるイベント
-        gameContainer.addEventListener('click', (event) => {
-            if (settingsOpen && !settingsMenu.contains(event.target) && event.target !== settingsIcon) {
-                closeSettingsMenu();
-            }
-        });
-
-        // 設定メニューの表示/非表示を切り替える関数
-        function updateSettingsMenuVisibility() {
-            if (settingsOpen) {
-                settingsMenu.classList.add('show');
-                gameContainer.classList.add('settings-open');
-            } else {
-                settingsMenu.classList.remove('show');
-                gameContainer.classList.remove('settings-open');
-            }
-        }
-
-        // 設定メニューを閉じる関数
-        function closeSettingsMenu() {
-            settingsOpen = false;
-            updateSettingsMenuVisibility();
-        }
-
-        // ダークモード/ライトモード切り替えボタン
-        document.getElementById('toggle-dark-mode').addEventListener('click', () => {
-            toggleDarkMode();
-        });
-
-        // カラーパレット選択の処理
-        colorPaletteSelect.addEventListener('change', () => {
-            currentColorPalette = colorPaletteSelect.value;
-
-            // 色覚サポートの場合
-            if (currentColorPalette === 'colorblind') {
-                colorBlindPaletteSelect.style.display = 'block';
-                customColorPalette.style.display = 'none';
-                updateColorPalette(colorBlindPalette[colorBlindPaletteSelect.value]);
-            }
-            // カスタムカラーパレットの場合
-            else if (currentColorPalette === 'custom') {
-                colorBlindPaletteSelect.style.display = 'none';
-                customColorPalette.style.display = 'block';
-                renderCustomColorPalette(); // カスタムカラーUIをレンダリング
-            }
-            // その他のデフォルトのパレットの場合
-            else {
-                colorBlindPaletteSelect.style.display = 'none';
-                customColorPalette.style.display = 'none';
-                updateColorPalette(COLORS[currentColorPalette]);
-            }
-        });
-
-        // 色覚サポートの選択肢が変わったときの処理
-        colorBlindPaletteSelect.addEventListener('change', () => {
-            updateColorPalette(colorBlindPalette[colorBlindPaletteSelect.value]);
-        });
-
-        // カスタムカラー適用ボタンの処理
-        document.getElementById('apply-custom-colors').addEventListener('click', () => {
-            saveCustomColors();
-            updateCustomColors();
-        });
-
-        // 色を追加ボタンの処理
-        document.getElementById('add-color').addEventListener('click', () => {
-            customColors.push("#cccccc"); // デフォルト色を追加
-            saveCustomColors();
-            renderCustomColorPalette();
-        });
-
-        // カスタムカラーパレットを更新する関数
-        function updateCustomColors() {
-            let newCustomColors = [];
-            let colorInputs = customColorsContainer.querySelectorAll('input[type="color"]');
-            colorInputs.forEach(input => {
-                newCustomColors.push(input.value);
-            });
-            updateColorPalette(newCustomColors);
-        }
-
-        // 実際にカラーパレットを更新する関数
-        function updateColorPalette(newColors) {
-            COLORS['current'] = newColors; // 'current' パレットを更新
-            currentColorPalette = 'current';
-            availableColors = setupColors(currentGameDifficulty.numColors);
-            NUM_COLORS = availableColors.length;
-            resetGame();
-            saveSettings();
-        }
-
-        // カスタムカラーパレットのレンダリング
-        function renderCustomColorPalette() {
-            customColorsContainer.innerHTML = ''; // Clear existing palette
-
-            customColors.forEach((color, index) => {
-                const colorInputWrapper = document.createElement('div');
-                colorInputWrapper.classList.add('color-input-wrapper');
-
-                const colorInput = document.createElement('input');
-                colorInput.type = 'color';
-                colorInput.value = color;
-                colorInputWrapper.appendChild(colorInput);
-
-                const removeButton = document.createElement('button');
-                removeButton.classList.add('remove-color');
-                removeButton.textContent = '削除';
-                removeButton.addEventListener('click', () => {
-                    customColors.splice(index, 1);
-                    saveCustomColors();
-                    renderCustomColorPalette();
-                });
-                colorInputWrapper.appendChild(removeButton);
-
-                customColorsContainer.appendChild(colorInputWrapper);
-            });
-        }
-
-        // カスタムカラーパレットの値を LocalStorage に保存
-        function saveCustomColors() {
-            localStorage.setItem('customColors', JSON.stringify(customColors));
-        }
-
-        // LocalStorage からカスタムカラーパレットの値をロード
-        function loadCustomColors() {
-            const storedColors = localStorage.getItem('customColors');
-            if (storedColors) {
-                customColors = JSON.parse(storedColors);
-            }
-        }
-
-        // HTMLで難易度を選択するドロップダウンリストを追加
-        function setupDifficultySelection() {
-            const select = document.getElementById('difficulty-select');
-            for (const level in DIFFICULTY_LEVELS) {
-                const option = document.createElement("option");
-                option.value = level;
-                const levelName = level.replace('UNIQUE_', '').charAt(0).toUpperCase() + level.replace('UNIQUE_', '').slice(1);
-                const uniqueText = level.includes('UNIQUE_') ? ' (被りなし)' : ' (被りあり)';
-                option.textContent = levelName + uniqueText;
-                select.appendChild(option);
-            }
-            select.addEventListener("change", (event) => {
-                currentGameDifficulty = DIFFICULTY_LEVELS[event.target.value];
-                resetGame(); // 難易度を変更した場合、ゲームを再開
+        function initializeGame() {
+            // ダークモードの切り替え
+            function toggleDarkMode() {
+                document.body.classList.toggle('dark-mode');
                 saveSettings(); // 設定を保存
+            }
+
+            // 設定アイコンのクリックイベント
+            document.getElementById('settings-icon-container').addEventListener('click', (event) => {
+                event.stopPropagation(); // イベントの伝播を停止
+                settingsOpen = !settingsOpen;
+                updateSettingsMenuVisibility();
             });
-        }
 
-        function resetGame() {
-            // 以前のゲームをリセットするために startGame() のすべてのステップを実行
-            availableColors = setupColors(currentGameDifficulty.numColors); // 使用される色数を変更
-            NUM_COLORS = availableColors.length;
-            CODE_LENGTH = currentGameDifficulty.codeLength;
-            MAX_GUESSES = currentGameDifficulty.maxGuesses;
-            startGame(); // ゲームを再開
-            updateColorButtons();
-        }
-
-        function setupColors(numColors) {
-            return COLORS[currentColorPalette]?.slice(0, numColors) || COLORS['default'].slice(0, numColors);
-        }
-
-        // 色ボタンの作成
-        const colorButtons = document.getElementById('color-buttons');
-
-        function createColorButton(color) {
-            const button = document.createElement('button');
-            button.style.backgroundColor = color;
-            button.setAttribute('aria-label', `色: ${color}`); // アクセシビリティ: ボタンに色の説明を追加
-
-            button.addEventListener('click', () => {
-                if (currentGuess.length < CODE_LENGTH && !gameOver && (gameMode === "single" || isPlayerTurn)) {
-                    currentGuess.push(color);
-                    updateCurrentGuessDisplay();
+            // 設定メニューの外側をクリックで閉じるイベント
+            gameContainer.addEventListener('click', (event) => {
+                if (settingsOpen && !settingsMenu.contains(event.target) && event.target !== document.getElementById('settings-icon-container')) {
+                    closeSettingsMenu();
                 }
             });
-            return button;
-        }
 
-        function updateColorButtons() {
-            colorButtons.innerHTML = ''; // Clear existing buttons
-            availableColors.forEach(color => {
-                const button = createColorButton(color);
-                colorButtons.appendChild(button);
-            });
-        }
-
-        // 現在の推測を表示
-        function updateCurrentGuessDisplay() {
-            currentGuessContainer.innerHTML = '';
-            currentGuess.forEach((color, index) => {
-                const colorBox = document.createElement('div');
-                colorBox.classList.add('ui-color-box');
-                colorBox.style.backgroundColor = color;
-                colorBox.setAttribute('aria-label', `色: ${color}, 位置: ${index + 1}`); // アクセシビリティ: 色と位置の説明を追加
-                colorBox.draggable = true; // ドラッグ可能にする
-                colorBox.dataset.index = index; // インデックスを保存
-
-                // ドラッグ開始時の処理
-                colorBox.addEventListener('dragstart', (event) => {
-                    draggedItem = event.target;
-                });
-
-                // ドロップ先の許可
-                colorBox.addEventListener('dragover', (event) => {
-                    event.preventDefault();
-                });
-
-                // ドロップ時の処理
-                colorBox.addEventListener('drop', (event) => {
-                    event.preventDefault();
-                    if (draggedItem !== event.target) {
-                        const originIndex = parseInt(draggedItem.dataset.index);
-                        const targetIndex = parseInt(event.target.dataset.index);
-
-                        // 配列内で要素を入れ替える
-                        [currentGuess[originIndex], currentGuess[targetIndex]] = [currentGuess[targetIndex], currentGuess[originIndex]];
-                        updateCurrentGuessDisplay(); // 表示を更新
-                    }
-                });
-                currentGuessContainer.appendChild(colorBox);
-            });
-        }
-
-        // 秘密のコードを生成
-        function generateSecretCode() {
-            let code = [];
-            if (currentGameDifficulty.uniqueColors) {
-                // 難易度設定が UNIQUE の場合、同じ色が重複しないように生成
-                let tempAvailableColors = [...availableColors];
-                for (let i = 0; i < CODE_LENGTH; i++) {
-                    const randomIndex = Math.floor(Math.random() * tempAvailableColors.length);
-                    code.push(tempAvailableColors[randomIndex]);
-                    tempAvailableColors.splice(randomIndex, 1);
-                }
-            } else {
-                // 既存のコード生成ロジック（色の重複を許可）
-                for (let i = 0; i < CODE_LENGTH; i++) {
-                    code.push(availableColors[Math.floor(Math.random() * NUM_COLORS)]);
-                }
-            }
-            return code;
-        }
-
-        // 推測をチェック(引数secretCodeを削除)
-        function checkGuess(guess, pastGuess) {
-            let hit = 0;
-            let blow = 0;
-            const secretCodeCopy = [...pastGuess];
-            const guessCopy = [...guess];
-
-            for (let i = 0; i < CODE_LENGTH; i++) {
-                if (secretCodeCopy[i] === guessCopy[i]) {
-                    hit++;
-                    secretCodeCopy[i] = null;
-                    guessCopy[i] = null;
-                }
-            }
-
-            for (let i = 0; i < CODE_LENGTH; i++) {
-                if (guessCopy[i] !== null) {
-                    const secretIndex = secretCodeCopy.indexOf(guessCopy[i]);
-                    if (secretIndex !== -1) {
-                        blow++;
-                        secretCodeCopy[secretIndex] = null;
-                    }
-                }
-            }
-
-            return {
-                hit: hit,
-                blow: blow
-            };
-        }
-
-        // 推測結果を表示
-        function displayGuessResult(guess, originalGuess, hit, blow, isPlayer) {
-            const guessHistoryBody = document.getElementById('guess-history-body');
-            const row = document.createElement('tr');
-            row.classList.add('js-new-guess');
-
-            const guessCell = document.createElement('td');
-            // AI対戦モードの場合
-            if (gameMode === "ai") {
-                // AIの推測であることを示すラベル
-                if (!isPlayer) {
-                    const aiLabel = document.createElement('span');
-                    aiLabel.textContent = '(AI) ';
-                    guessCell.appendChild(aiLabel);
-                }
-            }
-            guess.forEach(color => {
-                const colorBox = document.createElement('div');
-                colorBox.classList.add('ui-color-box');
-                colorBox.style.backgroundColor = color;
-                colorBox.setAttribute('aria-label', `色: ${color}`); // アクセシビリティ: 色の説明を追加
-                guessCell.appendChild(colorBox);
-            });
-            row.appendChild(guessCell);
-
-            const hitCell = document.createElement('td');
-            hitCell.setAttribute('aria-label', `ヒット: ${hit}個`); // アクセシビリティ対応
-            for (let i = 0; i < hit; i++) {
-                const hitIcon = document.createElement('span');
-                hitIcon.textContent = '●';
-                hitIcon.setAttribute('aria-hidden', 'true'); // スクリーンリーダーで読み上げない
-                hitCell.appendChild(hitIcon);
-            }
-            hitCell.appendChild(document.createTextNode(` (${hit})`)); // テキストで個数を表示
-            row.appendChild(hitCell);
-
-            const blowCell = document.createElement('td');
-            blowCell.setAttribute('aria-label', `ブロー: ${blow}個`); // アクセシビリティ対応
-            for (let i = 0; i < blow; i++) {
-                const blowIcon = document.createElement('span');
-                blowIcon.textContent = '○';
-                blowIcon.setAttribute('aria-hidden', 'true'); // スクリーンリーダーで読み上げない
-                blowCell.appendChild(blowIcon);
-            }
-            blowCell.appendChild(document.createTextNode(` (${blow})`)); // テキストで個数を表示
-            row.appendChild(blowCell);
-
-            guessHistoryBody.appendChild(row);
-            setTimeout(() => {
-                row.classList.add('show');
-                row.classList.remove('js-new-guess');
-            }, 10);
-        }
-
-        // アラートメッセージを表示する関数
-        function showAlertMessage(message) {
-            const alertMessageElement = document.getElementById('alert-message');
-            alertMessageElement.textContent = message;
-            alertMessageElement.classList.add('show');
-
-            // 3秒後にアラートを非表示にする
-            setTimeout(() => {
-                alertMessageElement.classList.remove('show');
-            }, 3000);
-        }
-          // 制約を満たす推測を生成するための関数 (制約プログラミング)
-        function generateConstrainedGuess(constraints) {
-          let validGuesses = [];
-
-          function generate(currentGuess) {
-            if (currentGuess.length === CODE_LENGTH) {
-              // 制約を満たすか確認
-              if (constraintsMet(currentGuess, constraints)) {
-                validGuesses.push([...currentGuess]);
-              }
-              return;
-            }
-
-            for (const color of availableColors) {
-              currentGuess.push(color);
-              generate(currentGuess);
-              currentGuess.pop(); // バックトラック
-            }
-          }
-
-          generate([]);
-          return validGuesses;
-        }
-
-        // 推測が過去の制約を満たすか確認する関数
-        function constraintsMet(guess, constraints) {
-          for (const constraint of constraints) {
-            const {
-              pastGuess,
-              hit,
-              blow
-            } = constraint;
-            const result = compareGuess(guess, pastGuess);
-
-            // 制約を満たさない場合
-            if (result.hit !== hit || result.blow !== blow) {
-              return false;
-            }
-          }
-          return true;
-        }
-
-       // checkGuessの引数を調整(secretCodeではなく過去の推測を使用)
-        function compareGuess(guess, pastGuess) {
-          let hit = 0;
-          let blow = 0;
-          const secretCodeCopy = [...guess];
-          const guessCopy = [...pastGuess];
-
-          for (let i = 0; i < CODE_LENGTH; i++) {
-            if (secretCodeCopy[i] === guessCopy[i]) {
-              hit++;
-              secretCodeCopy[i] = null;
-              guessCopy[i] = null;
-            }
-          }
-
-          for (let i = 0; i < CODE_LENGTH; i++) {
-            if (guessCopy[i] !== null) {
-              const secretIndex = secretCodeCopy.indexOf(guessCopy[i]);
-              if (secretIndex !== -1) {
-                blow++;
-                secretCodeCopy[secretIndex] = null;
-              }
-            }
-          }
-
-          return {
-            hit: hit,
-            blow: blow
-          };
-        }
-
-       // AIが賢く推測するための評価関数を調整
-        async function generateAiGuess() {
-          thinkingElement.textContent = 'AI思考中...';
-          return new Promise(resolve => {
-            setTimeout(() => {
-              let bestGuess = null;
-              let bestScore = -Infinity;
-
-             // 過去の推測から制約を生成
-              const constraints = gameHistory.map(pastGuess => ({
-                pastGuess: pastGuess.guess,
-                hit: pastGuess.hit,
-                blow: pastGuess.blow
-              }));
-               // 制約を満たす推測を生成
-               let validGuesses = generateConstrainedGuess(constraints);
-
-                // サンプリングする推測の最大数 (調整可能)
-                const maxSampledGuesses = 100;
-
-                // 推測の数が多すぎる場合はサンプリング
-                if (validGuesses.length > maxSampledGuesses) {
-                  validGuesses = sample(validGuesses, maxSampledGuesses);
-                }
-                  // 初手の場合、可能な色の分布を均等に試すことを優先
-                if (gameHistory.length === 0) {
-                    let firstGuess = [];
-                    for (let i = 0; i < CODE_LENGTH; i++) {
-                        firstGuess.push(availableColors[i % NUM_COLORS]);
-                    }
-                    bestGuess = firstGuess;
+            // 設定メニューの表示/非表示を切り替える関数
+            function updateSettingsMenuVisibility() {
+                if (settingsOpen) {
+                    settingsMenu.classList.add('show');
+                    gameContainer.classList.add('settings-open');
                 } else {
-                    // 有効な推測の中から最良の推測を選択
-                    for (const guess of validGuesses) {
-                        const score = evaluateGuess(guess);
-                        if (score > bestScore) {
-                            bestScore = score;
-                            bestGuess = guess;
-                        }
-                    }
-                 }
-
-              thinkingElement.textContent = '';
-              resolve(bestGuess);
-            }, 500);
-          });
-        }
-
-     // 配列からランダムに要素をサンプリングする関数
-        function sample(array, size) {
-            const shuffled = [...array].sort(() => 0.5 - Math.random());
-            return shuffled.slice(0, size);
-        }
-        // 推測を評価する関数(secretCodeを削除)
-        function evaluateGuess(guess) {
-            let score = 0;
-            // 可能な限り、同じ色を避ける (初期段階では特に重要)
-            const uniqueColors = new Set(guess).size;
-            score += uniqueColors * 3;
-
-            // 過去の推測と矛盾しないようにスコアリング
-            for (const pastGuessData of gameHistory) {
-                const { guess: pastGuess, hit: pastHit, blow: pastBlow } = pastGuessData;
-                const result = compareGuess(guess, pastGuess); // compareGuessを使用
-                const hitDiff = result.hit - pastHit;
-                const blowDiff = result.blow - pastBlow;
-
-                 // 矛盾がある場合はスコアを下げる
-                if (hitDiff < 0 || blowDiff < 0) {
-                    score -= 5; // 大きくペナルティ
+                    settingsMenu.classList.remove('show');
+                    gameContainer.classList.remove('settings-open');
                 }
             }
-              return score;
-        }
 
-        // 以前のコード
-        // checkGuess関数を調整して、引数として与えられたシークレットコードと比較できるようにする
+            // 設定メニューを閉じる関数
+            function closeSettingsMenu() {
+                settingsOpen = false;
+                updateSettingsMenuVisibility();
+            }
 
-        // AIのターン
-        async function aiTurn() {
-            thinkingElement.textContent = 'AI思考中...';
-
-            // AIの推測を生成（非同期処理）
-            const aiGuess = await generateAiGuess();
-
-            thinkingElement.textContent = '';
-            processGuess(aiGuess, false); // AIの推測を処理
-        }
-
-        // プレイヤーの入力を無効にする関数
-        function disableInput() {
-            document.getElementById('undo-button').disabled = true;
-            document.getElementById('guess-button').disabled = true;
-            disableColorButtons();
-        }
-
-        // ターンの処理
-        function processGuess(guess, isPlayer) {
-            guessCount++;
-            const result = checkGuess(guess, secretCode); // compareGuessを使用
-            displayGuessResult(guess, guess, result.hit, result.blow, isPlayer);
-            gameHistory.push({
-                guess: guess,
-                hit: result.hit,
-                blow: result.blow
+            // ダークモード/ライトモード切り替えボタン
+            document.getElementById('toggle-dark-mode').addEventListener('click', () => {
+                toggleDarkMode();
             });
 
-            if (result.hit === CODE_LENGTH) {
-                const winner = isPlayer ? 'おめでとうございます！あなたの勝ちです！' : 'AIの勝ちです！';
-                document.getElementById('result').textContent = winner;
-                gameOver = true;
-                disableInput(); // 入力を無効化
-            } else if (guessCount >= MAX_GUESSES) {
-                gameOver = true;
-                disableInput(); // 入力を無効化
-                // 正解を表示
-                const resultText = document.createElement('p');
-                resultText.textContent = 'ゲームオーバー！正解は: ';
-                secretCode.forEach(color => {
-                    const colorBox = document.createElement('span');
+            // カラーパレット選択の処理
+            colorPaletteSelect.addEventListener('change', () => {
+                currentColorPalette = colorPaletteSelect.value;
+
+                // 色覚サポートの場合
+                if (currentColorPalette === 'colorblind') {
+                    colorBlindPaletteSelect.style.display = 'block';
+                    customColorPalette.style.display = 'none';
+                    updateColorPalette(colorBlindPalette[colorBlindPaletteSelect.value]);
+                }
+                // カスタムカラーパレットの場合
+                else if (currentColorPalette === 'custom') {
+                    colorBlindPaletteSelect.style.display = 'none';
+                    customColorPalette.style.display = 'block';
+                    renderCustomColorPalette(); // カスタムカラーUIをレンダリング
+                }
+                // その他のデフォルトのパレットの場合
+                else {
+                    colorBlindPaletteSelect.style.display = 'none';
+                    customColorPalette.style.display = 'none';
+                    updateColorPalette(COLORS[currentColorPalette]);
+                }
+            });
+
+            // 色覚サポートの選択肢が変わったときの処理
+            colorBlindPaletteSelect.addEventListener('change', () => {
+                updateColorPalette(colorBlindPalette[colorBlindPaletteSelect.value]);
+            });
+
+            // カスタムカラー適用ボタンの処理
+            document.getElementById('apply-custom-colors').addEventListener('click', () => {
+                saveCustomColors();
+                updateCustomColors();
+            });
+
+            // 色を追加ボタンの処理
+            document.getElementById('add-color').addEventListener('click', () => {
+                customColors.push("#cccccc"); // デフォルト色を追加
+                saveCustomColors();
+                renderCustomColorPalette();
+            });
+
+            // カスタムカラーパレットを更新する関数
+            function updateCustomColors() {
+                let newCustomColors = [];
+                let colorInputs = customColorsContainer.querySelectorAll('input[type="color"]');
+                colorInputs.forEach(input => {
+                    newCustomColors.push(input.value);
+                });
+                updateColorPalette(newCustomColors);
+            }
+
+            // 実際にカラーパレットを更新する関数
+            function updateColorPalette(newColors) {
+                COLORS['current'] = newColors; // 'current' パレットを更新
+                currentColorPalette = 'current';
+                availableColors = setupColors(currentGameDifficulty.numColors);
+                NUM_COLORS = availableColors.length;
+                resetGame();
+                saveSettings();
+            }
+
+            // カスタムカラーパレットのレンダリング
+            function renderCustomColorPalette() {
+                customColorsContainer.innerHTML = ''; // Clear existing palette
+
+                customColors.forEach((color, index) => {
+                    const colorInputWrapper = document.createElement('div');
+                    colorInputWrapper.classList.add('color-input-wrapper');
+
+                    const colorInput = document.createElement('input');
+                    colorInput.type = 'color';
+                    colorInput.value = color;
+                    colorInputWrapper.appendChild(colorInput);
+
+                    const removeButton = document.createElement('button');
+                    removeButton.classList.add('remove-color');
+                    removeButton.textContent = '削除';
+                    removeButton.addEventListener('click', () => {
+                        customColors.splice(index, 1);
+                        saveCustomColors();
+                        renderCustomColorPalette();
+                    });
+                    colorInputWrapper.appendChild(removeButton);
+
+                    customColorsContainer.appendChild(colorInputWrapper);
+                });
+            }
+
+                        // カスタムカラーパレットの値を LocalStorage に保存
+                        function saveCustomColors() {
+                localStorage.setItem('customColors', JSON.stringify(customColors));
+            }
+
+            // LocalStorage からカスタムカラーパレットの値をロード
+            function loadCustomColors() {
+                const storedColors = localStorage.getItem('customColors');
+                if (storedColors) {
+                    customColors = JSON.parse(storedColors);
+                }
+            }
+
+            // HTMLで難易度を選択するドロップダウンリストを追加
+            function setupDifficultySelection() {
+                const select = document.getElementById('difficulty-select');
+                for (const level in DIFFICULTY_LEVELS) {
+                    const option = document.createElement("option");
+                    option.value = level;
+                    const levelName = level.replace('UNIQUE_', '').charAt(0).toUpperCase() + level.replace('UNIQUE_', '').slice(1);
+                    const uniqueText = level.includes('UNIQUE_') ? ' (被りなし)' : ' (被りあり)';
+                    option.textContent = levelName + uniqueText;
+                    select.appendChild(option);
+                }
+                select.addEventListener("change", (event) => {
+                    currentGameDifficulty = DIFFICULTY_LEVELS[event.target.value];
+                    resetGame(); // 難易度を変更した場合、ゲームを再開
+                    saveSettings(); // 設定を保存
+                });
+            }
+
+            function resetGame() {
+                // 以前のゲームをリセットするために startGame() のすべてのステップを実行
+                availableColors = setupColors(currentGameDifficulty.numColors); // 使用される色数を変更
+                NUM_COLORS = availableColors.length;
+                CODE_LENGTH = currentGameDifficulty.codeLength;
+                MAX_GUESSES = currentGameDifficulty.maxGuesses;
+                startGame(); // ゲームを再開
+                updateColorButtons();
+            }
+
+            function setupColors(numColors) {
+                return COLORS[currentColorPalette]?.slice(0, numColors) || COLORS['default'].slice(0, numColors);
+            }
+
+            // 色ボタンの作成
+            const colorButtons = document.getElementById('color-buttons');
+
+            function createColorButton(color) {
+                const button = document.createElement('button');
+                button.style.backgroundColor = color;
+                button.setAttribute('aria-label', `色: ${color}`); // アクセシビリティ: ボタンに色の説明を追加
+
+                button.addEventListener('click', () => {
+                    if (currentGuess.length < CODE_LENGTH && !gameOver && (gameMode === "single" || isPlayerTurn)) {
+                        currentGuess.push(color);
+                        updateCurrentGuessDisplay();
+                    }
+                });
+                return button;
+            }
+
+            function updateColorButtons() {
+                colorButtons.innerHTML = ''; // Clear existing buttons
+                availableColors.forEach(color => {
+                    const button = createColorButton(color);
+                    colorButtons.appendChild(button);
+                });
+            }
+
+            // 現在の推測を表示
+            function updateCurrentGuessDisplay() {
+                currentGuessContainer.innerHTML = '';
+                currentGuess.forEach((color, index) => {
+                    const colorBox = document.createElement('div');
                     colorBox.classList.add('ui-color-box');
                     colorBox.style.backgroundColor = color;
-                    colorBox.setAttribute('aria-label', `色: ${color}`);
-                    resultText.appendChild(colorBox);
+                    colorBox.setAttribute('aria-label', `色: ${color}, 位置: ${index + 1}`); // アクセシビリティ: 色と位置の説明を追加
+                    colorBox.draggable = true; // ドラッグ可能にする
+                    colorBox.dataset.index = index; // インデックスを保存
+
+                    // ドラッグ開始時の処理
+                    colorBox.addEventListener('dragstart', (event) => {
+                        draggedItem = event.target;
+                    });
+
+                    // ドロップ先の許可
+                    colorBox.addEventListener('dragover', (event) => {
+                        event.preventDefault();
+                    });
+
+                    // ドロップ時の処理
+                    colorBox.addEventListener('drop', (event) => {
+                        event.preventDefault();
+                        if (draggedItem !== event.target) {
+                            const originIndex = parseInt(draggedItem.dataset.index);
+                            const targetIndex = parseInt(event.target.dataset.index);
+
+                            // 配列内で要素を入れ替える
+                            [currentGuess[originIndex], currentGuess[targetIndex]] = [currentGuess[targetIndex], currentGuess[originIndex]];
+                            updateCurrentGuessDisplay(); // 表示を更新
+                        }
+                    });
+                    currentGuessContainer.appendChild(colorBox);
                 });
-                const resultContainer = document.getElementById('result');
-                resultContainer.innerHTML = '';
-                resultContainer.appendChild(resultText);
-                resultContainer.classList.add('result-fade-in');
-            } else {
-                // AI対戦モードの場合のみターンを交代
-                if (gameMode === "ai") {
-                    if (isPlayer) {
-                        isPlayerTurn = false;
-                        document.getElementById('result').textContent = `AIのターンです`;
-                        setTimeout(aiTurn, 1500); // 少し遅延させてAIのターンを開始
-                    } else {
-                        isPlayerTurn = true;
-                        document.getElementById('result').textContent = `あなたのターンです (残り${MAX_GUESSES - guessCount}回)`;
-                    }
-                } else {
-                    document.getElementById('result').textContent = `残り${MAX_GUESSES - guessCount}回`;
-                }
             }
 
-            // 推測後に currentGuess をクリア
-            currentGuess = [];
-            updateCurrentGuessDisplay();
-        }
-
-        // 推測ボタン
-        guessButton.addEventListener('click', () => {
-            if (gameMode === "single") {
-                // シングルプレイモード
-                if (currentGuess.length === CODE_LENGTH && !gameOver) {
-                    processGuess(currentGuess, true);
+            // 秘密のコードを生成
+            function generateSecretCode() {
+                let code = [];
+                if (currentGameDifficulty.uniqueColors) {
+                    // 難易度設定が UNIQUE の場合、同じ色が重複しないように生成
+                    let tempAvailableColors = [...availableColors];
+                    for (let i = 0; i < CODE_LENGTH; i++) {
+                        const randomIndex = Math.floor(Math.random() * tempAvailableColors.length);
+                        code.push(tempAvailableColors[randomIndex]);
+                        tempAvailableColors.splice(randomIndex, 1);
+                    }
                 } else {
-                    const requiredColors = currentGameDifficulty.codeLength;
-                    showAlertMessage(`${requiredColors}つの色を選択してください。`);
+                    // 既存のコード生成ロジック（色の重複を許可）
+                    for (let i = 0; i < CODE_LENGTH; i++) {
+                        code.push(availableColors[Math.floor(Math.random() * NUM_COLORS)]);
+                    }
                 }
-            } else if (gameMode === "ai") {
-                // AI対戦モード
-                if (isPlayerTurn) {
+                return code;
+            }
+
+            // 推測をチェック(引数secretCodeを削除)
+            function checkGuess(guess, pastGuess) {
+                let hit = 0;
+                let blow = 0;
+                const secretCodeCopy = [...pastGuess];
+                const guessCopy = [...guess];
+
+                for (let i = 0; i < CODE_LENGTH; i++) {
+                    if (secretCodeCopy[i] === guessCopy[i]) {
+                        hit++;
+                        secretCodeCopy[i] = null;
+                        guessCopy[i] = null;
+                    }
+                }
+
+                for (let i = 0; i < CODE_LENGTH; i++) {
+                    if (guessCopy[i] !== null) {
+                        const secretIndex = secretCodeCopy.indexOf(guessCopy[i]);
+                        if (secretIndex !== -1) {
+                            blow++;
+                            secretCodeCopy[secretIndex] = null;
+                        }
+                    }
+                }
+
+                return {
+                    hit: hit,
+                    blow: blow
+                };
+            }
+
+            // 推測結果を表示
+            function displayGuessResult(guess, originalGuess, hit, blow, isPlayer) {
+                const guessHistoryBody = document.getElementById('guess-history-body');
+                const row = document.createElement('tr');
+                row.classList.add('js-new-guess');
+
+                const guessCell = document.createElement('td');
+                // AI対戦モードの場合
+                if (gameMode === "ai") {
+                    // AIの推測であることを示すラベル
+                    if (!isPlayer) {
+                        const aiLabel = document.createElement('span');
+                        aiLabel.textContent = '(AI) ';
+                        guessCell.appendChild(aiLabel);
+                    }
+                }
+                guess.forEach(color => {
+                    const colorBox = document.createElement('div');
+                    colorBox.classList.add('ui-color-box');
+                    colorBox.style.backgroundColor = color;
+                    colorBox.setAttribute('aria-label', `色: ${color}`); // アクセシビリティ: 色の説明を追加
+                    guessCell.appendChild(colorBox);
+                });
+                row.appendChild(guessCell);
+
+                const hitCell = document.createElement('td');
+                hitCell.setAttribute('aria-label', `ヒット: ${hit}個`); // アクセシビリティ対応
+                for (let i = 0; i < hit; i++) {
+                    const hitIcon = document.createElement('span');
+                    hitIcon.textContent = '●';
+                    hitIcon.setAttribute('aria-hidden', 'true'); // スクリーンリーダーで読み上げない
+                    hitCell.appendChild(hitIcon);
+                }
+                hitCell.appendChild(document.createTextNode(` (${hit})`)); // テキストで個数を表示
+                row.appendChild(hitCell);
+
+                const blowCell = document.createElement('td');
+                blowCell.setAttribute('aria-label', `ブロー: ${blow}個`); // アクセシビリティ対応
+                for (let i = 0; i < blow; i++) {
+                    const blowIcon = document.createElement('span');
+                    blowIcon.textContent = '○';
+                    blowIcon.setAttribute('aria-hidden', 'true'); // スクリーンリーダーで読み上げない
+                    blowCell.appendChild(blowIcon);
+                }
+                blowCell.appendChild(document.createTextNode(` (${blow})`)); // テキストで個数を表示
+                row.appendChild(blowCell);
+
+                guessHistoryBody.appendChild(row);
+                setTimeout(() => {
+                    row.classList.add('show');
+                    row.classList.remove('js-new-guess');
+                }, 10);
+            }
+
+            // アラートメッセージを表示する関数
+            function showAlertMessage(message) {
+                const alertMessageElement = document.getElementById('alert-message');
+                alertMessageElement.textContent = message;
+                alertMessageElement.classList.add('show');
+
+                // 3秒後にアラートを非表示にする
+                setTimeout(() => {
+                    alertMessageElement.classList.remove('show');
+                }, 3000);
+            }
+            // 制約を満たす推測を生成するための関数 (制約プログラミング)
+            function generateConstrainedGuess(constraints) {
+                let validGuesses = [];
+
+                function generate(currentGuess) {
+                    if (currentGuess.length === CODE_LENGTH) {
+                        // 制約を満たすか確認
+                        if (constraintsMet(currentGuess, constraints)) {
+                            validGuesses.push([...currentGuess]);
+                        }
+                        return;
+                    }
+
+                    for (const color of availableColors) {
+                        currentGuess.push(color);
+                        generate(currentGuess);
+                        currentGuess.pop(); // バックトラック
+                    }
+                }
+
+                generate([]);
+                return validGuesses;
+            }
+
+            // 推測が過去の制約を満たすか確認する関数
+            function constraintsMet(guess, constraints) {
+                for (const constraint of constraints) {
+                    const {
+                        pastGuess,
+                        hit,
+                        blow
+                    } = constraint;
+                    const result = compareGuess(guess, pastGuess);
+
+                    // 制約を満たさない場合
+                    if (result.hit !== hit || result.blow !== blow) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            // checkGuessの引数を調整(secretCodeではなく過去の推測を使用)
+            function compareGuess(guess, pastGuess) {
+                let hit = 0;
+                let blow = 0;
+                const secretCodeCopy = [...guess];
+                const guessCopy = [...pastGuess];
+
+                for (let i = 0; i < CODE_LENGTH; i++) {
+                    if (secretCodeCopy[i] === guessCopy[i]) {
+                        hit++;
+                        secretCodeCopy[i] = null;
+                        guessCopy[i] = null;
+                    }
+                }
+
+                for (let i = 0; i < CODE_LENGTH; i++) {
+                    if (guessCopy[i] !== null) {
+                        const secretIndex = secretCodeCopy.indexOf(guessCopy[i]);
+                        if (secretIndex !== -1) {
+                            blow++;
+                            secretCodeCopy[secretIndex] = null;
+                        }
+                    }
+                }
+
+                return {
+                    hit: hit,
+                    blow: blow
+                };
+            }
+
+            // AIが賢く推測するための評価関数を調整
+            async function generateAiGuess() {
+                thinkingElement.textContent = 'AI思考中...';
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        let bestGuess = null;
+                        let bestScore = -Infinity;
+
+                        // 過去の推測から制約を生成
+                        const constraints = gameHistory.map(pastGuess => ({
+                            pastGuess: pastGuess.guess,
+                            hit: pastGuess.hit,
+                            blow: pastGuess.blow
+                        }));
+                        // 制約を満たす推測を生成
+                        let validGuesses = generateConstrainedGuess(constraints);
+
+                        // サンプリングする推測の最大数 (調整可能)
+                        const maxSampledGuesses = 100;
+
+                        // 推測の数が多すぎる場合はサンプリング
+                        if (validGuesses.length > maxSampledGuesses) {
+                            validGuesses = sample(validGuesses, maxSampledGuesses);
+                        }
+                        // 初手の場合、可能な色の分布を均等に試すことを優先
+                        if (gameHistory.length === 0) {
+                            // First guess edge case: when NUM_COLORS > CODE_LENGTH.
+                            let firstGuess = [];
+                            if (NUM_COLORS > CODE_LENGTH) {
+                                // Choose a unique set of colors to try on the first guess
+                                let availableColorsCopy = [...availableColors];
+                                for (let i = 0; i < CODE_LENGTH; i++) {
+                                    const randomIndex = Math.floor(Math.random() * availableColorsCopy.length);
+                                    firstGuess.push(availableColorsCopy[randomIndex]);
+                                    availableColorsCopy.splice(randomIndex, 1); // Prevent repeats
+                                }
+                            } else {
+                                // Same logic when there aren't enough distinct colors
+                                for (let i = 0; i < CODE_LENGTH; i++) {
+                                    firstGuess.push(availableColors[i % NUM_COLORS]);
+                                }
+                            }
+                            bestGuess = firstGuess;
+                        } else {
+                            // 有効な推測の中から最良の推測を選択
+                            for (const guess of validGuesses) {
+                                const score = evaluateGuess(guess);
+                                if (score > bestScore) {
+                                    bestScore = score;
+                                    bestGuess = guess;
+                                }
+                            }
+                        }
+
+                        thinkingElement.textContent = '';
+                        resolve(bestGuess);
+                    }, 500);
+                });
+            }
+
+            // 配列からランダムに要素をサンプリングする関数
+            function sample(array, size) {
+                const shuffled = [...array].sort(() => 0.5 - Math.random());
+                return shuffled.slice(0, size);
+            }
+            // 推測を評価する関数(secretCodeを削除)
+            function evaluateGuess(guess) {
+                let score = 0;
+                // 可能な限り、同じ色を避ける (初期段階では特に重要)
+                const uniqueColors = new Set(guess).size;
+                score += uniqueColors * 3;
+
+                // 過去の推測と矛盾しないようにスコアリング
+                for (const pastGuessData of gameHistory) {
+                    const {
+                        guess: pastGuess,
+                        hit: pastHit,
+                        blow: pastBlow
+                    } = pastGuessData;
+                    const result = compareGuess(guess, pastGuess); // compareGuessを使用
+                    const hitDiff = result.hit - pastHit;
+                    const blowDiff = result.blow - pastBlow;
+
+                    // 矛盾がある場合はスコアを下げる
+                    if (hitDiff < 0 || blowDiff < 0) {
+                        score -= 5; // 大きくペナルティ
+                    }
+                }
+                return score;
+            }
+
+            // 以前のコード
+            // checkGuess関数を調整して、引数として与えられたシークレットコードと比較できるようにする
+
+            // AIのターン
+            async function aiTurn() {
+                thinkingElement.textContent = 'AI思考中...';
+
+                // AIの推測を生成（非同期処理）
+                const aiGuess = await generateAiGuess();
+
+                thinkingElement.textContent = '';
+                processGuess(aiGuess, false); // AIの推測を処理
+            }
+
+            // プレイヤーの入力を無効にする関数
+            function disableInput() {
+                document.getElementById('undo-button').disabled = true;
+                document.getElementById('guess-button').disabled = true;
+                disableColorButtons();
+            }
+
+            // ターンの処理
+            function processGuess(guess, isPlayer) {
+                guessCount++;
+                const result = checkGuess(guess, secretCode); // compareGuessを使用
+                displayGuessResult(guess, guess, result.hit, result.blow, isPlayer);
+                gameHistory.push({
+                    guess: guess,
+                    hit: result.hit,
+                    blow: result.blow
+                });
+
+                if (result.hit === CODE_LENGTH) {
+                    const winner = isPlayer ? 'おめでとうございます！あなたの勝ちです！' : 'AIの勝ちです！';
+                    document.getElementById('result').textContent = winner;
+                    gameOver = true;
+                    disableInput(); // 入力を無効化
+                } else if (guessCount >= MAX_GUESSES) {
+                    gameOver = true;
+                    disableInput(); // 入力を無効化
+                    // 正解を表示
+                    const resultText = document.createElement('p');
+                    resultText.textContent = 'ゲームオーバー！正解は: ';
+                    secretCode.forEach(color => {
+                        const colorBox = document.createElement('span');
+                        colorBox.classList.add('ui-color-box');
+                        colorBox.style.backgroundColor = color;
+                        colorBox.setAttribute('aria-label', `色: ${color}`);
+                        resultText.appendChild(colorBox);
+                    });
+                    const resultContainer = document.getElementById('result');
+                    resultContainer.innerHTML = '';
+                    resultContainer.appendChild(resultText);
+                    resultContainer.classList.add('result-fade-in');
+                } else {
+                    // AI対戦モードの場合のみターンを交代
+                    if (gameMode === "ai") {
+                        if (isPlayer) {
+                            isPlayerTurn = false;
+                            document.getElementById('result').textContent = `AIのターンです`;
+                            setTimeout(aiTurn, 1500); // 少し遅延させてAIのターンを開始
+                        } else {
+                            isPlayerTurn = true;
+                            document.getElementById('result').textContent = `あなたのターンです (残り${MAX_GUESSES - guessCount}回)`;
+                        }
+                    } else {
+                        document.getElementById('result').textContent = `残り${MAX_GUESSES - guessCount}回`;
+                    }
+                }
+
+                // 推測後に currentGuess をクリア
+                currentGuess = [];
+                updateCurrentGuessDisplay();
+            }
+
+            // 推測ボタン
+            guessButton.addEventListener('click', () => {
+                if (gameMode === "single") {
+                    // シングルプレイモード
                     if (currentGuess.length === CODE_LENGTH && !gameOver) {
                         processGuess(currentGuess, true);
                     } else {
                         const requiredColors = currentGameDifficulty.codeLength;
                         showAlertMessage(`${requiredColors}つの色を選択してください。`);
                     }
-                } else {
-                    showAlertMessage("AIターンです。");
-                }
-            }
-        });
-
-        // 取り消しボタン
-        const undoButton = document.getElementById('undo-button');
-        undoButton.addEventListener('click', () => {
-            if (currentGuess.length > 0 && !gameOver && (gameMode === "single" || isPlayerTurn)) {
-                currentGuess.pop();
-                updateCurrentGuessDisplay();
-            }
-        });
-
-        // リセットボタン
-        const resetButton = document.getElementById('reset-button');
-        resetButton.addEventListener('click', () => {
-            startGame();
-        });
-
-        // ヒントボタンの要素を取得
-        const hintButton = document.getElementById('hint-button');
-        const hintDisplay = document.getElementById('hint');
-
-        // ヒントボタンがクリックされたときの処理
-        hintButton.addEventListener('click', () => {
-            if (hintCount < maxHintCount && (gameMode === "single" || isPlayerTurn)) {
-                const hintText = generateHint(); // ヒントのテキスト部分だけを取得
-                hintDisplay.innerHTML = hintText; // ヒントを表示
-                hintCount++; // 使用回数を増やす
-                // 最大回数を超えたらボタンを無効化
-                if (hintCount >= maxHintCount) {
-                    hintButton.disabled = true;
-                    hintButton.textContent = 'ヒント (使用済み)';
-                }
-            } else {
-                showAlertMessage('ヒントの使用回数制限を超えました。');
-            }
-        });
-
-        // ヒントを生成する関数
-        function generateHint() {
-            // ヒントの生成ロジック（例：少なくとも一つの色は正しい位置にある）
-            const randomIndex = Math.floor(Math.random() * CODE_LENGTH); // ランダムな位置を選択
-            const color = secretCode[randomIndex]; // 選択された位置の色を取得
-            // 色のボックスを表示するためのHTMLを作成
-            const colorBox = `<div class="ui-color-box" style="background-color: ${color};" aria-label="色: ${color}"></div>`; // アクセシビリティ: 色の説明を追加
-            return `少なくとも、${randomIndex + 1}番目の位置には ${colorBox} が入っています。`; // ヒントのメッセージを生成
-        }
-
-        // 設定を保存する関数
-        function saveSettings() {
-            const settings = {
-                darkMode: document.body.classList.contains('dark-mode'),
-                colorPalette: currentColorPalette,
-                difficulty: document.getElementById('difficulty-select').value,
-                gameMode: gameMode // 現在のゲームモードを保存
-            };
-
-            // カスタムカラーの場合
-            if (currentColorPalette === 'custom') {
-                settings.customColors = customColors;
-            }
-
-            localStorage.setItem('gameSettings', JSON.stringify(settings));
-        }
-
-        // 設定を読み込む関数
-        function loadSettings() {
-            const storedSettings = localStorage.getItem('gameSettings');
-            if (storedSettings) {
-                const settings = JSON.parse(storedSettings);
-                if (settings.darkMode) {
-                    document.body.classList.add('dark-mode');
-                }
-                document.getElementById('color-palette-select').value = settings.colorPalette;
-                currentColorPalette = settings.colorPalette; // グローバル変数も更新
-                // 新しい条件を追加
-                if (settings.colorPalette === 'colorblind') {
-                    document.getElementById('color-blind-palette-select').value = settings.colorBlindType || 'protanopia'; // デフォルト値を設定
-                    colorBlindPaletteSelect.style.display = 'block';
-                    customColorPalette.style.display = 'none';
-                    updateColorPalette(colorBlindPalette[document.getElementById('color-blind-palette-select').value]);
-                } else if (settings.colorPalette === 'custom') {
-                    colorBlindPaletteSelect.style.display = 'none';
-                    customColorPalette.style.display = 'block';
-                    // カスタムカラーを復元
-                    if (settings.customColors) {
-                        customColors = settings.customColors;
-                    }
-                    renderCustomColorPalette();
-                } else {
-                    colorBlindPaletteSelect.style.display = 'none';
-                    customColorPalette.style.display = 'none';
-                    updateColorPalette(COLORS[currentColorPalette]);
-                }
-                document.getElementById('difficulty-select').value = settings.difficulty;
-                currentGameDifficulty = DIFFICULTY_LEVELS[settings.difficulty]; // グローバル変数も更新
-                availableColors = setupColors(currentGameDifficulty.numColors); // 色を再設定
-                NUM_COLORS = availableColors.length; // 色数を更新
-                // ゲームモードを復元
-                if (settings.gameMode) {
-                    gameMode = settings.gameMode;
-                    if (gameMode === "single") {
-                        singleModeRadio.checked = true;
-                        aiModeRadio.checked = false;
+                } else if (gameMode === "ai") {
+                    // AI対戦モード
+                    if (isPlayerTurn) {
+                        if (currentGuess.length === CODE_LENGTH && !gameOver) {
+                            processGuess(currentGuess, true);
+                        } else {
+                            const requiredColors = currentGameDifficulty.codeLength;
+                            showAlertMessage(`${requiredColors}つの色を選択してください。`);
+                        }
                     } else {
-                        singleModeRadio.checked = false;
-                        aiModeRadio.checked = true;
+                        showAlertMessage("AIターンです。");
+                    }
+                }
+            });
+
+            // 取り消しボタン
+            const undoButton = document.getElementById('undo-button');
+            undoButton.addEventListener('click', () => {
+                if (currentGuess.length > 0 && !gameOver && (gameMode === "single" || isPlayerTurn)) {
+                    currentGuess.pop();
+                    updateCurrentGuessDisplay();
+                }
+            });
+
+            // リセットボタン
+            const resetButton = document.getElementById('reset-button');
+            resetButton.addEventListener('click', () => {
+                startGame();
+            });
+
+            // ヒントボタンの要素を取得
+            const hintButton = document.getElementById('hint-button');
+            const hintDisplay = document.getElementById('hint');
+
+            // ヒントボタンがクリックされたときの処理
+            hintButton.addEventListener('click', () => {
+                if (hintCount < maxHintCount && (gameMode === "single" || isPlayerTurn)) {
+                    const hintText = generateHint(); // ヒントのテキスト部分だけを取得
+                    hintDisplay.innerHTML = hintText; // ヒントを表示
+                    hintCount++; // 使用回数を増やす
+                    // 最大回数を超えたらボタンを無効化
+                    if (hintCount >= maxHintCount) {
+                        hintButton.disabled = true;
+                        hintButton.textContent = 'ヒント (使用済み)';
+                    }
+                } else {
+                    showAlertMessage('ヒントの使用回数制限を超えました。');
+                }
+            });
+
+            // ヒントを生成する関数
+            function generateHint() {
+                // ヒントの生成ロジック（例：少なくとも一つの色は正しい位置にある）
+                const randomIndex = Math.floor(Math.random() * CODE_LENGTH); // ランダムな位置を選択
+                const color = secretCode[randomIndex]; // 選択された位置の色を取得
+                // 色のボックスを表示するためのHTMLを作成
+                const colorBox = `<div class="ui-color-box" style="background-color: ${color};" aria-label="色: ${color}"></div>`; // アクセシビリティ: 色の説明を追加
+                return `少なくとも、${randomIndex + 1}番目の位置には ${colorBox} が入っています。`; // ヒントのメッセージを生成
+            }
+
+            // 設定を保存する関数
+            function saveSettings() {
+                const settings = {
+                    darkMode: document.body.classList.contains('dark-mode'),
+                    colorPalette: currentColorPalette,
+                    difficulty: document.getElementById('difficulty-select').value,
+                    gameMode: gameMode // 現在のゲームモードを保存
+                };
+
+                // カスタムカラーの場合
+                if (currentColorPalette === 'custom') {
+                    settings.customColors = customColors;
+                }
+
+                localStorage.setItem('gameSettings', JSON.stringify(settings));
+            }
+
+            // 設定を読み込む関数
+            function loadSettings() {
+                const storedSettings = localStorage.getItem('gameSettings');
+                if (storedSettings) {
+                    const settings = JSON.parse(storedSettings);
+                    if (settings.darkMode) {
+                        document.body.classList.add('dark-mode');
+                    }
+                    document.getElementById('color-palette-select').value = settings.colorPalette;
+                    currentColorPalette = settings.colorPalette; // グローバル変数も更新
+                    // 新しい条件を追加
+                    if (settings.colorPalette === 'colorblind') {
+                        document.getElementById('color-blind-palette-select').value = settings.colorBlindType || 'protanopia'; // デフォルト値を設定
+                        colorBlindPaletteSelect.style.display = 'block';
+                        customColorPalette.style.display = 'none';
+                        updateColorPalette(colorBlindPalette[document.getElementById('color-blind-palette-select').value]);
+                    } else if (settings.colorPalette === 'custom') {
+                        colorBlindPaletteSelect.style.display = 'none';
+                        customColorPalette.style.display = 'block';
+                        // カスタムカラーを復元
+                        if (settings.customColors) {
+                            customColors = settings.customColors;
+                        }
+                        renderCustomColorPalette();
+                    } else {
+                        colorBlindPaletteSelect.style.display = 'none';
+                        customColorPalette.style.display = 'none';
+                        updateColorPalette(COLORS[currentColorPalette]);
+                    }
+                    document.getElementById('difficulty-select').value = settings.difficulty;
+                    currentGameDifficulty = DIFFICULTY_LEVELS[settings.difficulty]; // グローバル変数も更新
+                    availableColors = setupColors(currentGameDifficulty.numColors); // 色を再設定
+                    NUM_COLORS = availableColors.length; // 色数を更新
+                    // ゲームモードを復元
+                    if (settings.gameMode) {
+                        gameMode = settings.gameMode;
+                        if (gameMode === "single") {
+                            singleModeRadio.checked = true;
+                            aiModeRadio.checked = false;
+                        } else {
+                            singleModeRadio.checked = false;
+                            aiModeRadio.checked = true;
+                        }
                     }
                 }
             }
-        }
 
-        // ゲームを開始
-        function startGame() {
-            secretCode = generateSecretCode();
-            currentGuess = [];
-            gameHistory = [];
-            gameOver = false;
-            guessCount = 0;
-            isPlayerTurn = true; // プレイヤーのターンから開始
-            document.getElementById('guess-history-body').innerHTML = '';
-            const resultElement = document.getElementById('result');
+            // ゲームを開始
+            function startGame() {
+                secretCode = generateSecretCode();
+                currentGuess = [];
+                gameHistory = [];
+                gameOver = false;
+                guessCount = 0;
+                isPlayerTurn = true; // プレイヤーのターンから開始
+                document.getElementById('guess-history-body').innerHTML = '';
+                const resultElement = document.getElementById('result');
 
-            if (gameMode === "single") {
-                resultElement.textContent = `ゲーム開始！色を選んでください。（残り${MAX_GUESSES - guessCount}回)`;
-            } else {
-                resultElement.textContent = `ゲーム開始！色を選んでください。（あなたのターンです）`;
+                if (gameMode === "single") {
+                    resultElement.textContent = `ゲーム開始！色を選んでください。（残り${MAX_GUESSES - guessCount}回)`;
+                } else {
+                    resultElement.textContent = `ゲーム開始！色を選んでください。（あなたのターンです）`;
+                }
+
+                resultElement.classList.remove('result-fade-in');
+                updateCurrentGuessDisplay();
+                console.log(`Secret code: ${secretCode}`);
+                document.getElementById('undo-button').disabled = false;
+                document.getElementById('guess-button').disabled = false;
+                updateColorButtonState();
+                hintCount = 0;
+                const hintButton = document.getElementById('hint-button');
+                hintButton.disabled = false;
+                hintButton.textContent = 'ヒント';
+                const hintDisplay = document.getElementById('hint');
+                hintDisplay.textContent = '';
+                thinkingElement.textContent = ''; // 思考中メッセージをクリア
+                updateColorButtons();
             }
 
-            resultElement.classList.remove('result-fade-in');
-            updateCurrentGuessDisplay();
-            console.log(`Secret code: ${secretCode}`);
-            document.getElementById('undo-button').disabled = false;
-            document.getElementById('guess-button').disabled = false;
-            updateColorButtonState();
-            hintCount = 0;
-            const hintButton = document.getElementById('hint-button');
-            hintButton.disabled = false;
-            hintButton.textContent = 'ヒント';
-            const hintDisplay = document.getElementById('hint');
-            hintDisplay.textContent = '';
-            thinkingElement.textContent = ''; // 思考中メッセージをクリア
-            updateColorButtons();
-        }
+            // 色ボタンの状態を更新
+            function updateColorButtonState() {
+                const buttons = document.querySelectorAll('#color-buttons button');
+                buttons.forEach(button => {
+                    button.disabled = gameOver || (gameMode === "ai" && !isPlayerTurn);
+                });
+            }
 
-        // 色ボタンの状態を更新
-        function updateColorButtonState() {
-            const buttons = document.querySelectorAll('#color-buttons button');
-            buttons.forEach(button => {
-                button.disabled = gameOver || (gameMode === "ai" && !isPlayerTurn);
+            // 色ボタンを無効化
+            function disableColorButtons() {
+                const buttons = document.querySelectorAll('#color-buttons button');
+                buttons.forEach(button => {
+                    button.disabled = true;
+                });
+            }
+
+            // モード選択イベントリスナー
+            singleModeRadio.addEventListener('change', () => {
+                gameMode = "single";
+                resetGame();
             });
-        }
 
-        // 色ボタンを無効化
-        function disableColorButtons() {
-            const buttons = document.querySelectorAll('#color-buttons button');
-            buttons.forEach(button => {
-                button.disabled = true;
+            aiModeRadio.addEventListener('change', () => {
+                gameMode = "ai";
+                resetGame();
             });
+
+            // 起動時に呼び出し
+            setupDifficultySelection();
+            loadCustomColors(); // カスタムカラーをロード
+            loadSettings(); // 設定を読み込む
+            availableColors = setupColors(currentGameDifficulty.numColors);
+            startGame(); // ゲームの初期化と起動を resetGame にまとめる
         }
-
-        // モード選択イベントリスナー
-        singleModeRadio.addEventListener('change', () => {
-            gameMode = "single";
-            resetGame();
-        });
-
-        aiModeRadio.addEventListener('change', () => {
-            gameMode = "ai";
-            resetGame();
-        });
-
-        // 起動時に呼び出し
-        setupDifficultySelection();
-        loadCustomColors(); // カスタムカラーをロード
-        loadSettings(); // 設定を読み込む
-        availableColors = setupColors(currentGameDifficulty.numColors);
-        startGame(); // ゲームの初期化と起動を resetGame にまとめる
     </script>
 </body>
 
